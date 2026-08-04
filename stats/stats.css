@@ -902,3 +902,54 @@
   }
   .filters-details[open] .filters-chevron { transform: rotate(180deg); }
 }
+
+/* ============================================================
+   HISTOGRAMA DE ACTIVIDAD SOBRE EL RIEL
+   El slider avanza por días CON registros, no por calendario
+   (ver setupTimeline en stats.js). Estas marcas hacen legible
+   ese eje: cada una es un día y su altura, el volumen de
+   respuestas. Van detrás del riel y no capturan el puntero,
+   para no interferir con el arrastre de las manijas.
+============================================================ */
+.tl-density {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 24px;          /* termina justo donde empieza el riel (top: 40px) */
+  height: 16px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tl-tick {
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  transform: translateX(-50%);
+  border-radius: 2px 2px 0 0;
+  background: rgba(39, 84, 108, .22);
+}
+
+/* El día de la Feria se pinta con el acento del hito para que
+   la bandera y su barra se lean como una sola pieza. */
+.tl-tick--milestone {
+  width: 4px;
+  background: var(--color-acento-f);
+}
+
+.timeline-hint {
+  margin-top: 1.6rem;
+  font-family: var(--font-body);
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.timeline-hint strong {
+  color: var(--color-principal);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .timeline-hint { font-size: .74rem; }
+}

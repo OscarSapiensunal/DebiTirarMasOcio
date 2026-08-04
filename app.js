@@ -1007,6 +1007,100 @@ function renderFeedback({
 }
 
 /* ----------------------------------------------------------
+   COMPARTIR LA HERRAMIENTA
+
+   Se comparte únicamente el enlace del sitio. Los resultados de
+   la persona no salen nunca del dispositivo: no viajan en el
+   mensaje ni en la URL.
+
+   La dirección se toma de location.origin y no de una constante,
+   para que el botón siga siendo correcto en el dominio definitivo,
+   en un preview de Vercel o en desarrollo local.
+---------------------------------------------------------- */
+const SHARE_TITLE = 'Ociómetro · ¿En qué se te va la semana?';
+const SHARE_TEXT  = 'Descubre en qué se te va la semana. El Ociómetro reparte tus ' +
+                    '168 horas y te muestra cuánto tiempo de bienestar te queda realmente';
+
+function announceShare(msg) {
+  const status = document.getElementById('share-status');
+  if (status) status.textContent = msg;
+}
+
+function initShare() {
+  const url = location.origin + '/';
+
+  // 1 · WhatsApp — se reescribe el href con el dominio real.
+  const wa = document.getElementById('share-whatsapp');
+  if (wa) wa.href = 'https://wa.me/?text=' + encodeURIComponent(`${SHARE_TEXT}: ${url}`);
+
+  // 2 · Copiar enlace, con reposición del texto del botón.
+  const copyBtn   = document.getElementById('share-copy');
+  const copyLabel = document.getElementById('share-copy-text');
+  if (copyBtn && copyLabel) {
+    let resetTimer;
+    copyBtn.addEventListener('click', async () => {
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(url);
+        ok = true;
+      } catch {
+        // Safari antiguo y contextos sin permiso de portapapeles:
+        // se selecciona el texto para que la persona copie a mano.
+        const tmp = document.createElement('textarea');
+        tmp.value = url;
+        tmp.setAttribute('readonly', '');
+        tmp.style.position = 'fixed';
+        tmp.style.opacity  = '0';
+        document.body.appendChild(tmp);
+        tmp.select();
+        try { ok = document.execCommand('copy'); } catch { ok = false; }
+        tmp.remove();
+      }
+
+      // El texto del botón se mantiene corto pase lo que pase: meter la
+      // URL completa dentro de la píldora desbordaría el diseño. La
+      // dirección va en el anuncio para lector de pantalla.
+      copyLabel.textContent = ok ? '¡Enlace copiado!' : 'No se pudo copiar';
+      copyBtn.classList.toggle('share-btn--done', ok);
+      announceShare(ok
+        ? 'Enlace copiado al portapapeles.'
+        : `No se pudo copiar automáticamente. La dirección es ${url}`);
+
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        copyLabel.textContent = 'Copiar enlace';
+        copyBtn.classList.remove('share-btn--done');
+      }, 2600);
+    });
+  }
+
+  // 3 · Menú nativo del sistema — sólo si el navegador lo soporta
+  //     (en móvil abre Instagram, Telegram, correo, etc.).
+  const actions = document.querySelector('.share-actions');
+  if (actions && navigator.share) {
+    const btn = document.createElement('button');
+    btn.type      = 'button';
+    btn.className = 'share-btn share-btn--more';
+    btn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+      </svg>
+      Más opciones`;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url });
+      } catch {
+        // La persona canceló el diálogo: no hay nada que reportar.
+      }
+    });
+    actions.appendChild(btn);
+  }
+}
+
+/* ----------------------------------------------------------
    BARRA DE PROGRESO DE SCROLL
    Se actualiza dentro de requestAnimationFrame y con listener
    pasivo: así el scroll nunca espera por este cálculo (mejora
@@ -1065,6 +1159,7 @@ function init() {
     if (academicField) academicField.hidden = !isStudentCb.checked;
   }
 
+  initShare();
   initScrollProgress();
   updateCounter();
 }
