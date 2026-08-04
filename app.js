@@ -1,7 +1,13 @@
 /* ============================================================
-   RAPsi UNAL — Sistema de Análisis de Bienestar Universitario
-   app.js
-   Dependencia: Chart.js (cargado antes en el HTML via CDN)
+   Ociómetro — RAPsi UNAL
+   Sistema de Análisis de Bienestar Universitario · app.js
+   Dependencia: Chart.js (auto-alojado en /vendor, cargado antes)
+
+   Nota de arquitectura: la página no usa manejadores inline
+   (onclick / oninput). Todo se conecta con addEventListener al
+   final de este archivo, lo que permite servir el sitio con una
+   Content-Security-Policy estricta (sin 'unsafe-inline' en
+   script-src). Ver vercel.json.
 ============================================================ */
 
 /* ----------------------------------------------------------
@@ -12,62 +18,120 @@ const CONFIG = {
   diasSemana:  7,
 };
 
+/* Campos con slider: id → se sincronizan solos con su etiqueta */
+const SLIDER_IDS = [
+  'sleep', 'food', 'transit_hours', 'grooming', 'house_tasks',
+  'work', 'screen', 'physical_activity', 'social_activity', 'hobby_wellbeing',
+  'class_hours', 'self_study_hours'
+];
+
+/* ----------------------------------------------------------
+   LECTURA SEGURA DE CAMPOS NUMÉRICOS
+
+   Antes se usaba `parseFloat(el.value) || fallback`, que trata
+   el 0 como valor ausente: quien ponía "0 h" de transporte,
+   cuidado personal o tareas del hogar veía cómo el formulario
+   le devolvía silenciosamente el valor por defecto. Aquí el
+   fallback solo actúa si el campo no existe o no es un número,
+   y el resultado se recorta al rango [min, max] declarado en el
+   HTML (protege el <input type="number"> de valores absurdos).
+---------------------------------------------------------- */
+function readNum(id, fallback = 0) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+
+  const raw = parseFloat(el.value);
+  if (!Number.isFinite(raw)) return fallback;
+
+  const min = parseFloat(el.min);
+  const max = parseFloat(el.max);
+  let val = raw;
+  if (Number.isFinite(min)) val = Math.max(min, val);
+  if (Number.isFinite(max)) val = Math.min(max, val);
+  return val;
+}
+
 /* ----------------------------------------------------------
    HELPER: sincronizar slider con su etiqueta de valor
-   Se llama mediante oninput="syncRange('id')" en el HTML
 ---------------------------------------------------------- */
 function syncRange(id) {
   const input = document.getElementById(id);
   if (!input) return;
   const label = document.getElementById(id + '-val');
-  const val   = parseFloat(input.value);
-  if (label) {
-    label.textContent = `${fmt(val)} h`;
-  }
+  if (label) label.textContent = `${fmt(readNum(id))} h`;
   updateCounter();
+}
+
+/* ----------------------------------------------------------
+   LECTURA COMPLETA DEL FORMULARIO
+   Fuente única de verdad: la usan tanto el contador en vivo
+   como el cálculo final, de modo que nunca puedan discrepar.
+---------------------------------------------------------- */
+function readForm() {
+  const isStudent = document.getElementById('is_student')?.checked ?? true;
+
+  return {
+    isStudent,
+    sleep:        readNum('sleep', 7),
+    food:         readNum('food', 1.5),
+    grooming:     readNum('grooming', 1),
+    screen:       readNum('screen', 0),
+    transitHours: readNum('transit_hours', 0),
+    houseTasks:   readNum('house_tasks', 0),
+    classHours:     isStudent ? readNum('class_hours', 0)      : 0,
+    selfStudyHours: isStudent ? readNum('self_study_hours', 0) : 0,
+    work:     readNum('work', 0),
+    other:    readNum('other', 0),
+    physical: readNum('physical_activity', 0),
+    social:   readNum('social_activity', 0),
+    hobby:    readNum('hobby_wellbeing', 0),
+  };
+}
+
+/* Convierte la lectura del formulario a horas semanales. */
+function toWeekly(f) {
+  const D = CONFIG.diasSemana;
+  return {
+    hSleep:      f.sleep    * D,
+    hFood:       f.food     * D,
+    hGrooming:   f.grooming * D,
+    hScreen:     f.screen   * D,
+    hTransit:    f.transitHours,   // ya viene en horas/semana
+    hHouseTasks: f.houseTasks,
+    hStudy:      f.classHours + f.selfStudyHours,
+    hWork:       f.work,
+    hOther:      f.other,
+    hPhysical:   f.physical,
+    hSocial:     f.social,
+    hHobby:      f.hobby,
+  };
+}
+
+function totalOcupado(w) {
+  return w.hSleep + w.hFood + w.hGrooming + w.hScreen + w.hTransit
+       + w.hHouseTasks + w.hStudy + w.hWork + w.hOther
+       + w.hPhysical + w.hSocial + w.hHobby;
 }
 
 /* ----------------------------------------------------------
    CONTADOR EN TIEMPO REAL: horas ocupadas de 168
 ---------------------------------------------------------- */
 function updateCounter() {
-  const sleep      = parseFloat(document.getElementById('sleep')?.value)             || 7;
-  const food       = parseFloat(document.getElementById('food')?.value)              || 1.5;
-  const transitH   = parseFloat(document.getElementById('transit_hours')?.value)     || 1;
-  const grooming   = parseFloat(document.getElementById('grooming')?.value)          || 1;
-  const houseTasks = parseFloat(document.getElementById('house_tasks')?.value)       || 4;
-  const isStudent     = document.getElementById('is_student')?.checked ?? true;
-  const classH        = isStudent
-                      ? (parseFloat(document.getElementById('class_hours')?.value) || 0) : 0;
-  const selfStudyH    = isStudent
-                      ? (parseFloat(document.getElementById('self_study_hours')?.value) || 0) : 0;
-  const work       = parseFloat(document.getElementById('work')?.value)              || 0;
-  const other      = parseFloat(document.getElementById('other')?.value)             || 0;
-  const screen     = parseFloat(document.getElementById('screen')?.value)            || 0;
-  const physical   = parseFloat(document.getElementById('physical_activity')?.value) || 0;
-  const social     = parseFloat(document.getElementById('social_activity')?.value)   || 0;
-  const hobby      = parseFloat(document.getElementById('hobby_wellbeing')?.value)   || 0;
-
-  const D     = CONFIG.diasSemana;
-  const total = (sleep * D) + (food * D) + transitH + (grooming * D)
-              + houseTasks + (classH + selfStudyH) + work + other
-              + (screen * D) + physical + social + hobby;
-
+  const total   = totalOcupado(toWeekly(readForm()));
   const pctUsed = Math.min(100, (total / CONFIG.totalHoras) * 100);
+  const isOver  = total > CONFIG.totalHoras;
 
-  const usedEl  = document.getElementById('hc-used');
-  const barEl   = document.getElementById('hc-bar');
+  const usedEl     = document.getElementById('hc-used');
+  const barEl      = document.getElementById('hc-bar');
   const wrapEl     = document.getElementById('hours-counter');
   const overflowEl = document.getElementById('hours-overflow');
-  const btnCalc    = document.querySelector('.btn-calc');
-  const isOver     = total > CONFIG.totalHoras;
+  const btnCalc    = document.getElementById('btn-calc');
 
   if (usedEl) usedEl.textContent = fmt(total);
   if (barEl)  barEl.style.width  = pctUsed + '%';
   if (wrapEl)     wrapEl.classList.toggle('hc-over', isOver);
   if (overflowEl) overflowEl.hidden = !isOver;
   if (btnCalc) {
-    btnCalc.disabled = false;
     btnCalc.classList.toggle('btn-calc--over', isOver);
     btnCalc.textContent = isOver
       ? '⚠️ Superaste las 168 h · ajusta tus valores antes de calcular'
@@ -79,12 +143,23 @@ function updateCounter() {
    HELPERS: formato numérico y porcentaje
 ---------------------------------------------------------- */
 function fmt(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '0';
   // Muestra 1 decimal solo si el valor no es entero
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
 function pct(n) {
-  return ((n / CONFIG.totalHoras) * 100).toFixed(1) + '%';
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '0.0%';
+  return ((v / CONFIG.totalHoras) * 100).toFixed(1) + '%';
+}
+
+/* Redondea a 2 decimales — evita colas de coma flotante
+   (p. ej. 10.500000000000002) en el snapshot guardado. */
+function round2(n) {
+  const v = Number(n);
+  return Number.isFinite(v) ? Math.round(v * 100) / 100 : 0;
 }
 
 /* ----------------------------------------------------------
@@ -92,16 +167,32 @@ function pct(n) {
 ---------------------------------------------------------- */
 let weekChart = null;
 
+/* ----------------------------------------------------------
+   MENSAJE DE CONSENTIMIENTO (sustituye al alert() bloqueante)
+   Un alert() nativo interrumpe a los lectores de pantalla, no
+   se puede estilar y en móvil tapa el propio checkbox que hay
+   que marcar. Aquí el aviso vive junto al campo, con role="alert"
+   para que se anuncie solo.
+---------------------------------------------------------- */
+function setConsentError(show) {
+  const box   = document.getElementById('consent-box');
+  const error = document.getElementById('consent-error');
+  if (error) error.hidden = !show;
+  if (box)   box.classList.toggle('consent-box--error', show);
+}
+
 /* ==========================================================
    FUNCIÓN PRINCIPAL: CALCULAR
    Orquesta lectura → cálculo → UI → gráfico → feedback
 ========================================================== */
 function calcular() {
-  const _calcBtn = document.querySelector('.btn-calc');
-  if (_calcBtn?.classList.contains('btn-calc--over')) {
-    _calcBtn.classList.remove('shake');
-    void _calcBtn.offsetWidth;
-    _calcBtn.classList.add('shake');
+  const btnCalc = document.getElementById('btn-calc');
+  if (btnCalc?.classList.contains('btn-calc--over')) {
+    btnCalc.classList.remove('shake');
+    void btnCalc.offsetWidth;
+    btnCalc.classList.add('shake');
+    document.getElementById('hours-overflow')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
 
@@ -110,81 +201,39 @@ function calcular() {
   //    Bloqueo técnico antes de procesar cualquier dato.
   // --------------------------------------------------------
   const consentBox = document.getElementById('consent_accepted');
-  if (!consentBox || !consentBox.checked) {
-    alert('Por favor acepta el tratamiento de datos (Ley 1581/2012) antes de continuar.');
-    consentBox.closest('.consent-box').style.outline = '2px solid #ff9491';
-    consentBox.focus();
-    consentBox.closest('.consent-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (!consentBox?.checked) {
+    setConsentError(true);
+    consentBox?.focus();
+    document.getElementById('consent-box')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return; // detener ejecución
   }
-  consentBox.closest('.consent-box').style.outline = '';
+  setConsentError(false);
 
   // --------------------------------------------------------
-  // 2. CAPTURA DE LAS 14 VARIABLES DEL FORMULARIO
-  //    Valores con fallback para evitar NaN en cálculos.
+  // 2. CAPTURA Y CONVERSIÓN A HORAS SEMANALES
   // --------------------------------------------------------
-
-  // Bloque estructural (valores DIARIOS → se multiplican × 7)
-  const sleep        = parseFloat(document.getElementById('sleep').value)              || 7;
-  const food         = parseFloat(document.getElementById('food').value)               || 1.5;
-  const transitHours = parseFloat(document.getElementById('transit_hours').value)      || 1;
-  const grooming     = parseFloat(document.getElementById('grooming').value)           || 1;
-  const houseTasks   = parseFloat(document.getElementById('house_tasks').value)        || 4;
-
-  // Bloque académico / obligaciones
-  const isStudent      = document.getElementById('is_student')?.checked ?? true;
-  const classHours     = isStudent
-                       ? (parseFloat(document.getElementById('class_hours').value) || 0) : 0;
-  const selfStudyHours = isStudent
-                       ? (parseFloat(document.getElementById('self_study_hours').value) || 0) : 0;
-  const work       = parseFloat(document.getElementById('work').value)               || 0;
-  const other      = parseFloat(document.getElementById('other').value)              || 0;
-
-  // Bloque bienestar: scrolling (DIARIO → × 7)
-  const screen     = parseFloat(document.getElementById('screen').value)             || 0;
-
-  // Bloque bienestar: actividades semanales
-  const physical   = parseFloat(document.getElementById('physical_activity').value)  || 0;
-  const social     = parseFloat(document.getElementById('social_activity').value)    || 0;
-  const hobby      = parseFloat(document.getElementById('hobby_wellbeing').value)    || 0;
+  const f = readForm();
+  const w = toWeekly(f);
 
   // --------------------------------------------------------
-  // 3. CONVERSIÓN A HORAS SEMANALES
-  // --------------------------------------------------------
-  const D = CONFIG.diasSemana;
-
-  const hSleep      = sleep       * D;
-  const hFood       = food        * D;
-  const hTransit    = transitHours;                // ya viene en horas/semana
-  const hGrooming   = grooming    * D;
-  const hHouseTasks = houseTasks;                  // ya es semanal
-  const hStudy        = classHours + selfStudyHours;
-  const hWork       = work;                        // ya es semanal
-  const hOther      = other;
-  const hScreen     = screen      * D;
-  const hPhysical   = physical;
-  const hSocial     = social;
-  const hHobby      = hobby;
-
-  // --------------------------------------------------------
-  // 4. ALGORITMO INSTITUCIONAL DE BIENESTAR
+  // 3. ALGORITMO INSTITUCIONAL DE BIENESTAR
   // --------------------------------------------------------
 
   // Necesidades corporales ineludibles (sueño, alimentación, aseo)
-  const tEstructural = hSleep + hFood + hGrooming;
+  const tEstructural = w.hSleep + w.hFood + w.hGrooming;
 
   // Tiempo académico, obligaciones fijas y hogar
-  const tAcademico   = hStudy + hOther + hHouseTasks;
+  const tAcademico   = w.hStudy + w.hOther + w.hHouseTasks;
 
   // Bienestar activo: física + social + hobbies/actividades restauradoras
-  const tBienestar   = hPhysical + hSocial + hHobby;
+  const tBienestar   = w.hPhysical + w.hSocial + w.hHobby;
 
   // Ocio digital: consumo pasivo de pantallas
-  const tOcioDigital = hScreen;
+  const tOcioDigital = w.hScreen;
 
   // Total ocupado
-  const tOcupado = tEstructural + hTransit + tAcademico + hWork
-                 + tBienestar   + tOcioDigital;
+  const tOcupado = totalOcupado(w);
 
   // Tiempo libre neto (puede ser negativo: sobreocupación crítica)
   const tLibreNeto = CONFIG.totalHoras - tOcupado;
@@ -193,53 +242,61 @@ function calcular() {
   const tOcioYLibre = Math.max(0, tLibreNeto);
 
   // --------------------------------------------------------
-  // 5. ACTUALIZAR TARJETAS DE RESULTADO
+  // 4. ACTUALIZAR TARJETAS DE RESULTADO
   // --------------------------------------------------------
-  setResult('sleep',       hSleep,                  'Descanso nocturno');
-  setResult('food',        hFood,                   'Alimentación');
-  setResult('grooming',    hGrooming,               'Cuidado personal');
-  setResult('transit',     hTransit,                'Desplazamientos');
-  setResult('study',       hStudy,                  'Clase + estudio autónomo');
-  setResult('work',        hWork,                   'Trabajo');
-  setResult('obligations', hOther,                  'Otras obligaciones');
-  setResult('screen',      hScreen,                 'Ocio digital');
-  setResult('physical',    hPhysical,               'Deporte y salud');
-  setResult('social',      hSocial,                 'Con los que quieres');
-  setResult('hobby',       hHobby,                  'Lo que te apasiona');
-  setResult('free',        Math.max(0, tLibreNeto), 'Tiempo libre neto');
-  setResult('total',       tOcupado,                'Total ocupado');
+  setResult('sleep',       w.hSleep);
+  setResult('food',        w.hFood);
+  setResult('grooming',    w.hGrooming);
+  setResult('transit',     w.hTransit);
+  setResult('study',       w.hStudy);
+  setResult('work',        w.hWork);
+  setResult('obligations', w.hOther);
+  setResult('screen',      w.hScreen);
+  setResult('physical',    w.hPhysical);
+  setResult('social',      w.hSocial);
+  setResult('hobby',       w.hHobby);
+  setResult('free',        Math.max(0, tLibreNeto));
+  setResult('total',       tOcupado);
 
   // --------------------------------------------------------
-  // 6. MOSTRAR SECCIONES OCULTAS
+  // 5. MOSTRAR SECCIONES OCULTAS
   // --------------------------------------------------------
-  document.querySelector('.results-section').classList.add('visible');
-  document.querySelector('.chart-section').classList.add('visible');
-  document.querySelector('.feedback-section').classList.add('visible');
+  ['.results-section', '.chart-section', '.feedback-section']
+    .forEach(sel => document.querySelector(sel)?.classList.add('visible'));
 
   // --------------------------------------------------------
-  // 7. GRÁFICO Y FEEDBACK
+  // 6. GRÁFICO Y FEEDBACK
   // --------------------------------------------------------
-  renderChart({ hSleep, hFood, hGrooming, hTransit, tAcademico,
-                hWork, tOcioDigital, hPhysical, hSocial, hHobby, tOcioYLibre });
+  renderChart({ ...w, tAcademico, tOcioDigital, tOcioYLibre });
 
   renderFeedback({
-    tLibreNeto, tBienestar, tOcioDigital,
-    tAcademico, hTransit, hWork,
-    sleep, isStudent,
-    hPhysical, hSocial, hFood,
-    hStudy, hHouseTasks, hHobby
+    tLibreNeto, tBienestar, tOcioDigital, tAcademico,
+    hTransit: w.hTransit, hWork: w.hWork,
+    sleep: f.sleep, isStudent: f.isStudent,
+    hPhysical: w.hPhysical, hSocial: w.hSocial, hFood: w.hFood,
+    hStudy: w.hStudy, hHouseTasks: w.hHouseTasks, hHobby: w.hHobby
   });
 
+  // Anuncio para lectores de pantalla: el scroll automático no
+  // comunica nada a quien navega sin ver la página.
+  const status = document.getElementById('calc-status');
+  if (status) {
+    status.textContent =
+      `Resultados listos. Tienes ${fmt(Math.max(0, tLibreNeto))} horas libres a la semana ` +
+      `y ${fmt(tBienestar)} horas de bienestar activo. ` +
+      `El detalle está a continuación.`;
+  }
+
   // --------------------------------------------------------
-  // 8. SCROLL SUAVE A RESULTADOS
+  // 7. SCROLL SUAVE A RESULTADOS
   // --------------------------------------------------------
   setTimeout(() => {
     document.querySelector('.results-section')
-      .scrollIntoView({ behavior: 'smooth', block: 'start' });
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 150);
 
   // --------------------------------------------------------
-  // 9. CIERRE DE RECOLECCIÓN — aplicación 100% estática
+  // 8. CIERRE DE RECOLECCIÓN — aplicación 100% estática
   //    El periodo de captura del Informe 2026-1 finalizó: ya no
   //    se escribe en ninguna base de datos externa. Antes de
   //    avisarlo, guardamos un snapshot local de esta respuesta
@@ -247,24 +304,24 @@ function calcular() {
   //    para poder simular su impacto en las estadísticas globales.
   // --------------------------------------------------------
   saveLocalSnapshot({
-    is_student:                isStudent,
-    sleep_hours:               parseFloat(hSleep),
-    transport_hours:           parseFloat(hTransit),
-    food_hours:                parseFloat(hFood),
-    grooming_hours:            parseFloat(hGrooming),
-    house_tasks_hours:         parseFloat(hHouseTasks),
-    class_hours:               parseFloat(classHours),
-    self_study_hours:          parseFloat(selfStudyHours),
-    academic_load_hours:       parseFloat(hStudy),
-    work_hours:                parseFloat(hWork),
-    obligations_hours:         parseFloat(hOther),
-    scrolling_hours:           parseFloat(hScreen),
-    physical_activity_hours:   parseFloat(hPhysical),
-    quality_social_hours:      parseFloat(hSocial),
-    other_hobbies_hours:       parseFloat(hHobby),
-    available_time:            parseFloat(tLibreNeto),
-    wellbeing_time:            parseFloat(tBienestar),
-    occupied_time:             parseFloat(tOcupado),
+    is_student:              f.isStudent,
+    sleep_hours:             round2(w.hSleep),
+    transport_hours:         round2(w.hTransit),
+    food_hours:              round2(w.hFood),
+    grooming_hours:          round2(w.hGrooming),
+    house_tasks_hours:       round2(w.hHouseTasks),
+    class_hours:             round2(f.classHours),
+    self_study_hours:        round2(f.selfStudyHours),
+    academic_load_hours:     round2(w.hStudy),
+    work_hours:              round2(w.hWork),
+    obligations_hours:       round2(w.hOther),
+    scrolling_hours:         round2(w.hScreen),
+    physical_activity_hours: round2(w.hPhysical),
+    quality_social_hours:    round2(w.hSocial),
+    other_hobbies_hours:     round2(w.hHobby),
+    available_time:          round2(tLibreNeto),
+    wellbeing_time:          round2(tBienestar),
+    occupied_time:           round2(tOcupado),
   });
 
   showLocalSubmissionMessage();
@@ -276,8 +333,13 @@ function calcular() {
    del dashboard (registros_bienestar_rows.json), de modo que
    este snapshot pueda mezclarse ahí para simular un impacto
    real en las estadísticas globales del Informe 2026-1.
+
+   No se guarda ningún identificador de la persona: ni nombre,
+   ni correo, ni IP. El id es aleatorio y solo sirve para
+   distinguir un registro de otro dentro de este dispositivo.
 ---------------------------------------------------------- */
 const LOCAL_SNAPSHOT_KEY = 'rapsi_user_snapshots';
+const MAX_SNAPSHOTS      = 50;   // techo de crecimiento en localStorage
 
 function saveLocalSnapshot(fields) {
   try {
@@ -299,11 +361,16 @@ function saveLocalSnapshot(fields) {
     }
 
     snapshots.push(snapshot);
+    // Conserva solo los más recientes: sin este tope, recalcular
+    // muchas veces haría crecer localStorage sin límite.
+    if (snapshots.length > MAX_SNAPSHOTS) {
+      snapshots = snapshots.slice(-MAX_SNAPSHOTS);
+    }
+
     localStorage.setItem(LOCAL_SNAPSHOT_KEY, JSON.stringify(snapshots));
-    console.log(`[RAPsi] Snapshot local acumulado en localStorage['${LOCAL_SNAPSHOT_KEY}'] (total: ${snapshots.length}).`);
   } catch (err) {
     // localStorage puede no estar disponible (modo privado, cuota llena, etc.)
-    console.error('[RAPsi] No se pudo guardar el snapshot local:', err.message);
+    console.warn('[RAPsi] No se pudo guardar el snapshot local:', err?.message);
   }
 }
 
@@ -324,11 +391,11 @@ function showLocalSubmissionMessage() {
   toast.setAttribute('role', 'status');
   toast.setAttribute('aria-live', 'polite');
   toast.innerHTML = `
-    <div class="rapsi-toast-icon">✓</div>
+    <div class="rapsi-toast-icon" aria-hidden="true">✓</div>
     <div class="rapsi-toast-text">
       Al final, puedes consultar tus respuestas, unidas junto con las estadísticas del 2026-1.
     </div>
-    <button class="rapsi-toast-close" aria-label="Cerrar aviso">&times;</button>`;
+    <button type="button" class="rapsi-toast-close" aria-label="Cerrar aviso">&times;</button>`;
 
   document.body.appendChild(toast);
 
@@ -341,16 +408,17 @@ function showLocalSubmissionMessage() {
 
   toast.querySelector('.rapsi-toast-close').addEventListener('click', dismiss);
   // Pausa el autodescartado mientras la persona está leyendo
+  // (ratón encima o foco dentro del aviso, para navegación por teclado)
   toast.addEventListener('mouseenter', () => clearTimeout(dismissTimer));
   toast.addEventListener('mouseleave', scheduleDismiss);
+  toast.addEventListener('focusin',    () => clearTimeout(dismissTimer));
+  toast.addEventListener('focusout',   scheduleDismiss);
 
   // Animación de entrada (setTimeout en vez de requestAnimationFrame:
   // así dispara igual aunque la pestaña esté en segundo plano) y
   // autodescartado.
   setTimeout(() => toast.classList.add('rapsi-toast--in'), 10);
   scheduleDismiss();
-
-  console.log('[RAPsi] Recolección cerrada — interacción confirmada y snapshot local guardado.');
 }
 
 /* ----------------------------------------------------------
@@ -374,7 +442,7 @@ const FACTS = {
   total:       'Las 168 h semanales son el único recurso verdaderamente igualitario entre personas'
 };
 
-function setResult(key, value, labelOverride) {
+function setResult(key, value) {
   const valEl  = document.getElementById('res-' + key);
   const factEl = document.getElementById('res-' + key + '-pct');
 
@@ -391,13 +459,14 @@ function setResult(key, value, labelOverride) {
 }
 
 /* ==========================================================
-   GRÁFICO DOUGHNUT — 6 CATEGORÍAS MACRO
-   Agrupa las 13 variables en segmentos legibles.
+   GRÁFICO DOUGHNUT — CATEGORÍAS MACRO
+   Agrupa las variables del formulario en segmentos legibles.
 ========================================================== */
 function renderChart({ hSleep, hFood, hGrooming, hTransit, tAcademico,
                         hWork, tOcioDigital, hPhysical, hSocial, hHobby, tOcioYLibre }) {
 
-  const ctx = document.getElementById('weekChart').getContext('2d');
+  const canvas = document.getElementById('weekChart');
+  if (!canvas || typeof Chart === 'undefined') return;
 
   const CATEGORIAS = [
     {
@@ -480,12 +549,15 @@ function renderChart({ hSleep, hFood, hGrooming, hTransit, tAcademico,
     }]
   };
 
+  // Respeta "reducir movimiento" del sistema operativo
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
   if (weekChart) {
     // Actualizar sin destruir la instancia (evita parpadeo)
     weekChart.data = chartData;
-    weekChart.update('active');
+    weekChart.update(reduceMotion ? 'none' : 'active');
   } else {
-    weekChart = new Chart(ctx, {
+    weekChart = new Chart(canvas.getContext('2d'), {
       type: 'doughnut',
       data: chartData,
       options: {
@@ -509,7 +581,7 @@ function renderChart({ hSleep, hFood, hGrooming, hTransit, tAcademico,
             boxPadding:      4,
           }
         },
-        animation: {
+        animation: reduceMotion ? false : {
           animateRotate: true,
           duration:      900,
           easing:        'easeInOutQuart'
@@ -520,29 +592,47 @@ function renderChart({ hSleep, hFood, hGrooming, hTransit, tAcademico,
 
   // --------------------------------------------------------
   // LEYENDA PERSONALIZADA (HTML)
+  // Se construye con el DOM en vez de innerHTML: no hay
+  // concatenación de strings que pueda convertirse en un
+  // vector de inyección si mañana las etiquetas dejan de ser
+  // constantes.
   // --------------------------------------------------------
   const legendEl = document.getElementById('chart-legend');
-  legendEl.innerHTML = CATEGORIAS.map(item => {
-    const barW = Math.min(100, Math.round(
-      (Math.max(0, item.value) / CONFIG.totalHoras) * 100
-    ));
-    return `
-      <div class="legend-item">
-        <div class="legend-dot"
-             style="background:${item.color}; border:1.5px solid rgba(0,0,0,.08)"></div>
-        <div class="legend-info">
-          <div class="legend-name">${item.label}</div>
-          <div class="legend-hours">
-            ${fmt(Math.max(0, item.value))} h · ${pct(Math.max(0, item.value))}
-          </div>
-        </div>
-        <div class="legend-bar-wrap">
-          <div class="legend-bar"
-               style="width:${barW}%; background:${item.color};
-                      border:1px solid rgba(0,0,0,.06)"></div>
-        </div>
-      </div>`;
-  }).join('');
+  if (!legendEl) return;
+  legendEl.replaceChildren(...CATEGORIAS.map(item => {
+    const value = Math.max(0, item.value);
+    const barW  = Math.min(100, Math.round((value / CONFIG.totalHoras) * 100));
+
+    const row = document.createElement('div');
+    row.className = 'legend-item';
+
+    const dot = document.createElement('div');
+    dot.className = 'legend-dot';
+    dot.style.background = item.color;
+    dot.style.border     = '1.5px solid rgba(0,0,0,.08)';
+
+    const info  = document.createElement('div');
+    info.className = 'legend-info';
+    const name  = document.createElement('div');
+    name.className   = 'legend-name';
+    name.textContent = item.label;
+    const hours = document.createElement('div');
+    hours.className   = 'legend-hours';
+    hours.textContent = `${fmt(value)} h · ${pct(value)}`;
+    info.append(name, hours);
+
+    const barWrap = document.createElement('div');
+    barWrap.className = 'legend-bar-wrap';
+    const bar = document.createElement('div');
+    bar.className      = 'legend-bar';
+    bar.style.width    = barW + '%';
+    bar.style.background = item.color;
+    bar.style.border   = '1px solid rgba(0,0,0,.06)';
+    barWrap.appendChild(bar);
+
+    row.append(dot, info, barWrap);
+    return row;
+  }));
 }
 
 /* ==========================================================
@@ -571,7 +661,6 @@ function renderFeedback({
 }) {
   const hSleep         = sleep * CONFIG.diasSemana;
   const cargaDura      = tAcademico + hWork + hTransit;
-  const sostenimiento  = hSleep; // sueño es el proxy más confiable
   const MAX            = 4;
   const cards          = [];
   // ════════════════════════════════════════════════════════
@@ -866,7 +955,7 @@ function renderFeedback({
     title: 'Conocerse es el primer paso del autocuidado',
     body: `Haber completado esta reflexión ya dice algo sobre ti: que te importa
            tu bienestar, no solo tu rendimiento. No existe una distribución
-           perfecta del tiempo. Existe la que te permite estudiar con sentido,
+           perfecta del tiempo. Existe la que te permita estudiar con sentido,
            descansar de verdad y seguir siendo tú.
            <br><br>
            Un tip de afrontamiento: identifica qué puedes controlar
@@ -896,73 +985,92 @@ function renderFeedback({
            <a href="https://docs.google.com/document/d/1u4TNtav8ljhSD3NhbAP3uy-_0vQlXI0MNvAuqemWISU/edit?usp=sharing"
               target="_blank" rel="noopener noreferrer"
               class="feedback-ig-link">Ver las fuentes bibliográficas</a>
-           de este análisis.`
+           de este análisis.
+           <a href="/stats/" class="reflection-stats-link">
+             📊 Conocer el panorama general de bienestar institucional (Informe 2026-1) ⟶
+           </a>`
   });
   // ════════════════════════════════════════════════════════
   // RENDERIZAR
   // ════════════════════════════════════════════════════════
   const container = document.getElementById('feedback-cards');
+  if (!container) return;
   container.innerHTML = cards.map((c, i) => `
     <div class="feedback-card ${c.type}" style="animation-delay:${i * 0.08}s">
-      <div class="fc-icon">${c.icon}</div>
+      <div class="fc-icon" aria-hidden="true">${c.icon}</div>
       <div class="fc-content">
-        <h4>${c.title}</h4>
+        <h3>${c.title}</h3>
         <p>${c.body}</p>
       </div>
     </div>
   `).join('');
-
-  // Enlace discreto al Informe 2026-1, integrado al final de la
-  // tarjeta de cierre universal (type 'ok'), como siguiente paso
-  // natural tras leer la reflexión — no como un banner aparte.
-  const closingContent = container.querySelector('.feedback-card.ok .fc-content');
-  if (closingContent) {
-    closingContent.insertAdjacentHTML('beforeend', `
-      <a href="./stats/" class="reflection-stats-link">
-        📊 Conocer el panorama general de bienestar institucional (Informe 2026-1) ⟶
-      </a>`);
-  }
 }
 
 /* ----------------------------------------------------------
-   EXPOSICIÓN GLOBAL DE FUNCIONES LLAMADAS DESDE HTML
-   Necesario para que onclick="calcular()" y oninput="syncRange()"
-   funcionen correctamente en cualquier entorno de carga.
----------------------------------------------------------- */
-window.calcular   = calcular;
-window.syncRange  = syncRange;
-
-/* ----------------------------------------------------------
    BARRA DE PROGRESO DE SCROLL
+   Se actualiza dentro de requestAnimationFrame y con listener
+   pasivo: así el scroll nunca espera por este cálculo (mejora
+   la métrica INP de Core Web Vitals, que Google usa para
+   posicionar).
 ---------------------------------------------------------- */
-window.addEventListener('scroll', () => {
-  const scrollTop   = document.documentElement.scrollTop || document.body.scrollTop;
-  const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
-  const progress    = scrollTotal > 0 ? (scrollTop / scrollTotal) * 100 : 0;
-  document.getElementById('progress-bar').style.width = progress + '%';
-});
+function initScrollProgress() {
+  const bar = document.getElementById('progress-bar');
+  if (!bar) return;
+
+  let ticking = false;
+  const update = () => {
+    const scrollTop   = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (scrollTotal > 0 ? (scrollTop / scrollTotal) * 100 : 0) + '%';
+    ticking = false;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+
+  update();
+}
 
 /* ----------------------------------------------------------
    INICIALIZACIÓN AL CARGAR LA PÁGINA
-   Sincroniza todos los sliders con sus etiquetas de valor.
+   Conecta todos los eventos (sin manejadores inline) y
+   sincroniza los sliders con sus etiquetas de valor.
 ---------------------------------------------------------- */
-document.addEventListener('DOMContentLoaded', () => {
-  [
-    'sleep', 'food', 'transit_hours', 'grooming', 'house_tasks',
-    'work', 'screen', 'physical_activity', 'social_activity', 'hobby_wellbeing',
-    'class_hours', 'self_study_hours'
-  ].forEach(syncRange);
+function init() {
+  // Sliders: etiqueta en vivo + contador de 168 h
+  SLIDER_IDS.forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => syncRange(id));
+    syncRange(id);
+  });
+
+  // Campo numérico libre "Otras obligaciones"
+  document.getElementById('other')?.addEventListener('input', updateCounter);
+
+  // Botón principal
+  document.getElementById('btn-calc')?.addEventListener('click', calcular);
+
+  // El aviso de consentimiento desaparece en cuanto se acepta
+  document.getElementById('consent_accepted')
+    ?.addEventListener('change', (e) => { if (e.target.checked) setConsentError(false); });
 
   // Visibilidad condicional del bloque académico
   const isStudentCb   = document.getElementById('is_student');
   const academicField = document.getElementById('academic-field');
   if (isStudentCb) {
     isStudentCb.addEventListener('change', () => {
-      if (academicField) academicField.style.display = isStudentCb.checked ? '' : 'none';
+      if (academicField) academicField.hidden = !isStudentCb.checked;
       updateCounter();
     });
+    if (academicField) academicField.hidden = !isStudentCb.checked;
   }
 
-  // Inicializar totales y contador
+  initScrollProgress();
   updateCounter();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
