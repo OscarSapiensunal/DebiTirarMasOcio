@@ -950,45 +950,32 @@ function renderFeedback({
   // ════════════════════════════════════════════════════════
   // CIERRE UNIVERSAL — siempre presente
   // ════════════════════════════════════════════════════════
+  // Esta tarjeta habla de la persona, no de la institución: los canales
+  // de contacto viven una sola vez, en el bloque #contacto de la
+  // reflexión final. Aquí queda el cierre personal y los dos pasos
+  // siguientes naturales — ver de dónde salen los datos, y verse dentro
+  // del panorama de la comunidad.
   cards.push({
     type: 'ok', icon: '🌱',
     title: 'Conocerse es el primer paso del autocuidado',
     body: `Haber completado esta reflexión ya dice algo sobre ti: que te importa
-           tu bienestar, no solo tu rendimiento. No existe una distribución
+           tu bienestar, no solo tu rendimiento. <strong>No existe una distribución
            perfecta del tiempo. Existe la que te permita estudiar con sentido,
-           descansar de verdad y seguir siendo tú.
+           descansar de verdad y seguir siendo tú.</strong>
            <br><br>
-           Un tip de afrontamiento: identifica qué puedes controlar
-           (afrontamiento centrado en el problema) y evita aislarte. El apoyo
-           social es tu principal factor protector.
+           Tu bienestar no depende solo de ti, también del entorno que habitas.
+           La universidad tiene redes para apoyarte.
            <br><br>
-           Recuerda: tu bienestar no depende solo de ti, sino del entorno que
-           habitas. La universidad tiene redes para apoyarte.
-           <br><br>
-           Si algo de lo que viste hoy
-           te inquieta,
-           <a href="https://www.instagram.com/rapsi.unal/" target="_blank" rel="noopener noreferrer" class="feedback-ig-link">@rapsi.unal</a> y
-           <a href="https://www.instagram.com/acompanamientounal_bog/"
-              target="_blank" rel="noopener noreferrer"
-              class="feedback-ig-link">@acompanamientounal_bog</a>
-           están para acompañarte. Si necesitas orientación profesional,
-           la <a href="https://drive.google.com/file/d/1kB44Fki-kYU-Hty2Sxnd9Dh-dXKSZisG/view?usp=sharing"
-                target="_blank" rel="noopener noreferrer"
-                class="feedback-ig-link">Ruta de Salud Mental UNAL</a>
-           explica cómo acceder a acompañamiento especializado.
-           <br>
-           Si te interesa fortalecer habilidades, la
-           <a href="https://sites.google.com/unal.edu.co/escuela-habilidades-aai/inicio"
-              target="_blank" rel="noopener noreferrer"
-              class="feedback-ig-link">Escuela de Habilidades para la Vida UNAL</a>
-           tiene talleres abiertos a toda la comunidad.<br><br>
            <a href="https://docs.google.com/document/d/1u4TNtav8ljhSD3NhbAP3uy-_0vQlXI0MNvAuqemWISU/edit?usp=sharing"
               target="_blank" rel="noopener noreferrer"
               class="feedback-ig-link">Ver las fuentes bibliográficas</a>
            de este análisis.
-           <a href="/stats/" class="reflection-stats-link">
-             📊 Conocer el panorama general de bienestar institucional (Informe 2026-1) ⟶
-           </a>`
+           <span class="feedback-actions">
+             <a href="/stats" class="reflection-stats-link">
+               📊 Conoce el panorama de la comunidad — y el tuyo ⟶
+             </a>
+             <a href="#contacto" class="reflection-contact-link">↓ Contáctanos</a>
+           </span>`
   });
   // ════════════════════════════════════════════════════════
   // RENDERIZAR

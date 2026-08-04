@@ -745,8 +745,18 @@ input[type="number"]:focus {
 
 .chart-canvas-wrap {
   position: relative;
+  width: 100%;
   max-width: 380px;
+  /* Los elementos de un grid tienen min-width:auto, asi que no se
+     encogen por debajo del ancho intrinseco de su contenido: el
+     <canvas width="380"> forzaba 380px y provocaba desplazamiento
+     horizontal en pantallas de 375px una vez calculado el grafico. */
+  min-width: 0;
   margin-inline: auto;
+}
+
+.chart-canvas-wrap canvas {
+  max-width: 100%;
 }
 
 .chart-center-text {
@@ -773,6 +783,7 @@ input[type="number"]:focus {
 
 /* Leyenda personalizada */
 .chart-legend {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -968,39 +979,8 @@ input[type="number"]:focus {
 .reflection-section strong { color: #fff; }
 
 /* ============================================================
-   LINKS DE INSTAGRAM — Reflexión final y cierre feedback
+   ENLACES DENTRO DE LAS TARJETAS DE RETROALIMENTACIÓN
 ============================================================ */
-.instagram-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .75rem;
-  margin-top: 1.2rem;
-  margin-bottom: 1rem;
-}
-
-.instagram-link {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  padding: .6rem 1.4rem;
-  background: rgba(255,255,255,.1);
-  color: #fff;
-  font-weight: 700;
-  font-size: .95rem;
-  border-radius: 100px;
-  text-decoration: none;
-  border: 2px solid rgba(255,255,255,.45);
-  transition: transform .2s, background .2s, border-color .2s;
-  white-space: nowrap;
-  letter-spacing: .01em;
-}
-
-.instagram-link:hover {
-  background: rgba(255,255,255,.2);
-  border-color: rgba(255,255,255,.75);
-  transform: translateY(-2px);
-}
-
 .feedback-ig-link {
   color: var(--color-acento-f);
   font-weight: 700;
@@ -1982,19 +1962,19 @@ details.faq-item > summary:focus-visible {
    el enlace del sitio, nunca los resultados de la persona.
 ============================================================ */
 .share-block {
-  margin: 2.5rem 0;
-  padding: 1.6rem 1.8rem;
-  background: var(--color-neutral);
-  border: 1px solid rgba(39, 84, 108, .12);
-  border-radius: var(--radius);
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, .16);
   text-align: center;
 }
 
-.share-title {
+/* Especificidad reforzada: `.reflection-section p` (0,1,1) le ganaba a
+   `.share-title` (0,1,0) y pintaba este texto de blanco sobre crema. */
+.reflection-section .share-title {
   font-family: var(--font-body);
   font-size: .95rem;
   font-weight: 600;
-  color: var(--color-principal);
+  color: #fff;
   margin-bottom: 1.1rem;
 }
 
@@ -2033,29 +2013,176 @@ details.faq-item > summary:focus-visible {
 
 .share-btn--wa:hover { background: #1eb457; }
 
-/* Copiar enlace y menú nativo — secundarios, en paleta institucional */
+/* Copiar enlace y menú nativo — secundarios sobre la franja oscura */
 .share-btn--copy,
 .share-btn--more {
-  background: var(--color-white);
-  border-color: rgba(39, 84, 108, .22);
-  color: var(--color-principal);
+  background: rgba(255, 255, 255, .1);
+  border-color: rgba(255, 255, 255, .38);
+  color: #fff;
 }
 
 .share-btn--copy:hover,
 .share-btn--more:hover {
-  background: var(--color-acento-s);
-  border-color: var(--color-principal);
+  background: rgba(255, 255, 255, .2);
+  border-color: rgba(255, 255, 255, .75);
 }
 
 /* Confirmación de copiado */
 .share-btn--done {
-  background: rgba(168, 213, 162, .3);
+  background: rgba(168, 213, 162, .28);
   border-color: var(--c-free);
-  color: #2e7a29;
+  color: #dff3db;
 }
 
 @media (max-width: 480px) {
   .share-block   { padding: 1.3rem 1rem; }
   .share-actions { flex-direction: column; }
   .share-btn     { width: 100%; }
+}
+
+/* ============================================================
+   REJILLA DE CONTACTO
+   Los cuatro canales de apoyo, cada uno nombrado una sola vez en
+   todo el sitio. Formato de tarjeta-enlace en vez de párrafo: se
+   escanea de un vistazo en lugar de leerse. Vive sobre la franja
+   azul oscuro, de ahí los blancos translúcidos.
+============================================================ */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .7rem;
+  margin: 1.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 720px) {
+  .contact-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  height: 100%;
+  padding: .95rem 1.1rem;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: background .2s, border-color .2s, transform .18s;
+}
+
+.contact-card:hover {
+  background: rgba(255, 255, 255, .16);
+  border-color: rgba(255, 255, 255, .5);
+  transform: translateY(-2px);
+}
+
+.cc-icon {
+  flex-shrink: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.cc-body {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;            /* permite que el texto largo se ajuste */
+  flex: 1;
+}
+
+.cc-name {
+  font-family: var(--font-body);
+  font-size: .92rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.cc-desc {
+  font-family: var(--font-body);
+  font-size: .78rem;
+  line-height: 1.4;
+  /* .62 daba 3.66:1 sobre el azul institucional — por debajo del
+     minimo AA (4.5:1) para texto normal. */
+  color: rgba(255, 255, 255, .82);
+}
+
+.cc-arrow {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, .45);
+  font-size: .95rem;
+  transition: transform .18s, color .18s;
+}
+
+.contact-card:hover .cc-arrow {
+  color: #fff;
+  transform: translateX(3px);
+}
+
+/* ============================================================
+   ENLACES DEL DISTINTIVO RAPsi
+   Mantienen el blanco del bloque: se descubren al pasar el cursor
+   en vez de anunciarse con subrayado permanente.
+============================================================ */
+.rb-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .35);
+  transition: border-color .2s;
+}
+
+.rb-link:hover { border-bottom-color: #fff; }
+
+.footer-unit-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .25);
+  transition: border-color .2s;
+}
+
+.footer-unit-link:hover { border-bottom-color: rgba(255, 255, 255, .8); }
+
+/* ============================================================
+   ACCIONES AL PIE DE LA TARJETA DE CIERRE
+   Dos destinos: el panorama de la comunidad y el bloque de
+   contacto. Se apilan en móvil para no romper la píldora.
+============================================================ */
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: 1.1rem;
+}
+
+.reflection-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(39, 84, 108, .25);
+  border-radius: 100px;
+  color: var(--color-principal);
+  font-family: var(--font-body);
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .2s, border-color .2s;
+}
+
+.reflection-contact-link:hover {
+  background: var(--color-neutral);
+  border-color: var(--color-principal);
+}
+
+/* La píldora del panorama nace con margen superior propio; dentro
+   de .feedback-actions lo aporta el contenedor. */
+.feedback-actions .reflection-stats-link { margin-top: 0; }
+
+@media (max-width: 480px) {
+  .feedback-actions { flex-direction: column; align-items: stretch; }
+  .feedback-actions a { justify-content: center; }
 }
