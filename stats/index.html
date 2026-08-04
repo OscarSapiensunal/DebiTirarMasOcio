@@ -156,6 +156,10 @@
               </div>
 
               <div class="timeline" id="timeline">
+                <!-- Histograma de actividad: una marca por día con
+                     registros, con altura según el volumen. Se rellena
+                     en stats.js (renderTimelineDensity). -->
+                <div class="tl-density" id="tl-density" role="img"></div>
                 <div class="timeline-rail"></div>
                 <div class="timeline-fill" id="tl-fill"></div>
 
@@ -181,6 +185,11 @@
 
               <button type="button" class="btn-apply" id="btn-apply">Aplicar filtros</button>
             </div>
+
+            <p class="timeline-hint">
+              Cada paso de la barra es un <strong>día con respuestas</strong>, no un día
+              de calendario: la altura de cada marca indica cuántas se registraron.
+            </p>
           </div>
         </div>
       </details>

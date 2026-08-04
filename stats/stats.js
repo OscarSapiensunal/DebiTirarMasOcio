@@ -148,18 +148,34 @@ function showContent() {
    el día más antiguo es el offset 0 y el más reciente, maxOff.
 ---------------------------------------------------------- */
 let ALL_RECORDS = [];
-const MS_DAY        = 86400000;
 const MESES_ABBR    = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const MILESTONE_YMD = '2026-05-21';   // Jueves · Feria de las Emociones
-const TL = { baseMs: 0, maxOff: 0, milestoneOff: null };
+
+/* ----------------------------------------------------------
+   EL SLIDER AVANZA POR DÍAS CON REGISTROS, NO POR CALENDARIO
+
+   Con pasos de calendario la barra es proporcional al tiempo, y
+   eso la degrada sola: los días sin actividad ocupan el mismo
+   espacio que los días de recolección, y un único registro
+   lejano —el snapshot local de alguien que vuelve meses
+   después— estira el eje y aplasta todo el periodo real contra
+   el extremo izquierdo, arrastrando con él el hito de la Feria.
+
+   TL.days guarda solo los días que tienen al menos un registro;
+   el valor del slider es el índice dentro de ese arreglo. Así un
+   registro nuevo añade un paso, no doscientos, y la Feria
+   conserva su lugar dentro del periodo que de verdad importa.
+---------------------------------------------------------- */
+const TL = { days: [], counts: [], maxOff: 0, milestoneOff: null };
 
 // created_at (UTC) → día calendario en Colombia (UTC-5, sin DST) "YYYY-MM-DD"
 function colombiaDay(ms) {
   return new Date(ms - 5 * 3600 * 1000).toISOString().slice(0, 10);
 }
-// offset (días desde el día más antiguo) → "YYYY-MM-DD"
+// índice del slider → "YYYY-MM-DD" del día con registros en esa posición
 function offsetToYMD(off) {
-  return new Date(TL.baseMs + off * MS_DAY).toISOString().slice(0, 10);
+  if (!TL.days.length) return '1970-01-01';
+  return TL.days[Math.min(TL.days.length - 1, Math.max(0, off))];
 }
 // "YYYY-MM-DD" → instante (ms) del inicio o fin del día en Colombia
 function ymdToMs(ymd, endOfDay) {
@@ -536,23 +552,20 @@ function updateSourceNote(localCount) {
    datos disponibles. Posiciona (o esconde) el hito de la Feria.
 ---------------------------------------------------------- */
 function setupTimeline() {
-  // reduce() en vez de Math.min(...times): un spread con miles de
-  // elementos puede desbordar la pila de llamadas.
-  let minTs = Infinity, maxTs = -Infinity;
+  // Días distintos que tienen al menos un registro, con su volumen.
+  const porDia = new Map();
   for (const r of ALL_RECORDS) {
-    if (r.__ts < minTs) minTs = r.__ts;
-    if (r.__ts > maxTs) maxTs = r.__ts;
+    const dia = colombiaDay(r.__ts);
+    porDia.set(dia, (porDia.get(dia) || 0) + 1);
   }
 
-  const minDay = colombiaDay(minTs);
-  const maxDay = colombiaDay(maxTs);
+  TL.days   = [...porDia.keys()].sort();
+  TL.counts = TL.days.map(d => porDia.get(d));
+  TL.maxOff = Math.max(0, TL.days.length - 1);
 
-  TL.baseMs = ymdToMs(minDay, false);
-  TL.maxOff = Math.round((ymdToMs(maxDay, false) - TL.baseMs) / MS_DAY);
-
-  // Offset del hito (21 may 2026) dentro del dominio real de datos
-  const mOff = Math.round((ymdToMs(MILESTONE_YMD, false) - TL.baseMs) / MS_DAY);
-  TL.milestoneOff = (mOff >= 0 && mOff <= TL.maxOff) ? mOff : null;
+  // El hito solo existe si ese día tuvo recolección.
+  const mIdx = TL.days.indexOf(MILESTONE_YMD);
+  TL.milestoneOff = mIdx >= 0 ? mIdx : null;
 
   const from = document.getElementById('range-from');
   const to   = document.getElementById('range-to');
@@ -560,18 +573,51 @@ function setupTimeline() {
   from.value = 0;
   to.value   = TL.maxOff;
 
+  renderTimelineDensity();
+
   // Muestra el hito sólo si la Feria cae dentro del rango de datos
   const milestone = document.getElementById('tl-milestone');
   if (milestone) {
     if (TL.milestoneOff === null) {
-      milestone.style.display = 'none';
+      milestone.hidden = true;
     } else {
-      milestone.style.display = '';
+      milestone.hidden = false;
       milestone.style.left = pctOf(TL.milestoneOff) + '%';
     }
   }
 
   syncTimelineUI();
+}
+
+/* ----------------------------------------------------------
+   DENSIDAD DE REGISTROS SOBRE EL RIEL
+
+   Como los pasos ya no son proporcionales al calendario, la
+   barra necesita explicar por sí sola qué representa cada
+   posición. Estas marcas —una por día, con altura proporcional
+   al número de respuestas— convierten el eje en un histograma:
+   se ve de un vistazo dónde estuvo la actividad real y por qué
+   la Feria de las Emociones merece su bandera.
+---------------------------------------------------------- */
+function renderTimelineDensity() {
+  const host = document.getElementById('tl-density');
+  if (!host) return;
+
+  const maxCount = Math.max(...TL.counts, 1);
+
+  host.replaceChildren(...TL.days.map((dia, i) => {
+    const tick = document.createElement('span');
+    tick.className = 'tl-tick';
+    // Mínimo 18 % para que un día de un solo registro siga siendo visible.
+    tick.style.height = (18 + (TL.counts[i] / maxCount) * 82) + '%';
+    tick.style.left   = pctOf(i) + '%';
+    if (dia === MILESTONE_YMD) tick.classList.add('tl-tick--milestone');
+    return tick;
+  }));
+
+  host.setAttribute('aria-label',
+    `Actividad por día: ${TL.days.length} días con registros entre ` +
+    `${ymdToLabel(TL.days[0])} y ${ymdToLabel(TL.days[TL.days.length - 1])}.`);
 }
 
 /* ----------------------------------------------------------

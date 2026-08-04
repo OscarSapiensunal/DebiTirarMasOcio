@@ -154,6 +154,15 @@ Cosas que parecen mejorables hasta que se entiende por qué están así:
 
 - **Sin framework ni build.** No es descuido. Un sitio que se despliega copiando
   archivos sobrevive a cambios de equipo; uno que depende de `npm install` caduca.
+- **La línea de tiempo del informe avanza por días *con registros*, no por
+  calendario.** Es el detalle menos obvio del proyecto y el que más importa a largo
+  plazo. Una barra proporcional al tiempo se degrada sola: los días sin actividad
+  ocupan el mismo espacio que los de recolección, y basta con que alguien vuelva a usar
+  la calculadora dentro de un año para que su único registro estire el eje y aplaste
+  todo el periodo real contra el extremo izquierdo. Con 117 registros, la Feria de las
+  Emociones —31 % de todos los datos— ya aparecía en el 16 % de la barra; un solo
+  registro un año después la habría empujado al 1.5 %. Indexando por día con registros
+  se queda en torno al 32 % y un registro nuevo añade **un** paso, no doscientos.
 - **Sin manejadores `onclick` en el HTML.** Todo se conecta con `addEventListener`.
   Eso es lo que permite servir el sitio con una política de seguridad estricta sin
   `unsafe-inline`. Añadir un solo `onclick` obligaría a debilitarla.

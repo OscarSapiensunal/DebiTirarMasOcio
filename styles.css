@@ -1974,3 +1974,88 @@ details.faq-item > summary:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   COMPARTIR
+   Vive en el bloque de reflexión final, siempre visible: se puede
+   recomendar la herramienta sin haber calculado nada. Sólo viaja
+   el enlace del sitio, nunca los resultados de la persona.
+============================================================ */
+.share-block {
+  margin: 2.5rem 0;
+  padding: 1.6rem 1.8rem;
+  background: var(--color-neutral);
+  border: 1px solid rgba(39, 84, 108, .12);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.share-title {
+  font-family: var(--font-body);
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--color-principal);
+  margin-bottom: 1.1rem;
+}
+
+.share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .7rem;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;              /* área táctil cómoda */
+  padding: .65rem 1.25rem;
+  border: 1.5px solid transparent;
+  border-radius: 100px;
+  font-family: var(--font-body);
+  font-size: .87rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .15s, color .2s;
+}
+
+.share-btn:hover { transform: translateY(-1px); }
+.share-btn svg   { flex-shrink: 0; }
+
+/* WhatsApp — verde de marca, es el canal que la gente busca primero */
+.share-btn--wa {
+  background: #25D366;
+  color: #fff;
+}
+
+.share-btn--wa:hover { background: #1eb457; }
+
+/* Copiar enlace y menú nativo — secundarios, en paleta institucional */
+.share-btn--copy,
+.share-btn--more {
+  background: var(--color-white);
+  border-color: rgba(39, 84, 108, .22);
+  color: var(--color-principal);
+}
+
+.share-btn--copy:hover,
+.share-btn--more:hover {
+  background: var(--color-acento-s);
+  border-color: var(--color-principal);
+}
+
+/* Confirmación de copiado */
+.share-btn--done {
+  background: rgba(168, 213, 162, .3);
+  border-color: var(--c-free);
+  color: #2e7a29;
+}
+
+@media (max-width: 480px) {
+  .share-block   { padding: 1.3rem 1rem; }
+  .share-actions { flex-direction: column; }
+  .share-btn     { width: 100%; }
+}
