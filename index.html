@@ -1,66 +1,247 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-CO">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2327546c'/%3E%3Ccircle cx='16' cy='17.5' r='8' fill='none' stroke='white' stroke-width='1.8'/%3E%3Cpath d='M16 17.5 V 12.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M16 17.5 L 19.5 17.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='13' y='5' width='6' height='2.5' rx='0.8' fill='%2327546c' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2327546c'/%3E%3Ccircle cx='16' cy='17.5' r='8' fill='none' stroke='white' stroke-width='1.8'/%3E%3Cpath d='M16 17.5 V 12.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M16 17.5 L 19.5 17.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='13' y='5' width='6' height='2.5' rx='0.8' fill='%2327546c' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E" />
-  <title>¿En qué se te va la semana? · RAPsi UNAL</title>
-  <meta name="description" content="Calculadora de tiempo semanal para estudiantes de la Universidad Nacional de Colombia. Descubre cómo distribuyes tus 168 horas." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#27546c" />
 
-  <!-- Chart.js via CDN (debe cargarse ANTES que app.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- ============================================================
+       SEO — identidad del producto: "Ociómetro"
+       El título abre con el nombre de marca y cierra con la
+       consulta más buscada ("calculadora de tiempo semanal").
+  ============================================================ -->
+  <title>Ociómetro · Calculadora de tiempo semanal y bienestar | RAPsi UNAL</title>
+  <meta name="description" content="¿En qué se te va la semana? Calcula gratis cómo repartes tus 168 horas entre sueño, estudio, trabajo, transporte y pantallas, y recibe recomendaciones de bienestar con respaldo científico. Herramienta del Área de Acompañamiento Integral de la Universidad Nacional de Colombia." />
+  <link rel="canonical" href="https://ociometro.vercel.app/" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="author" content="RAPsi · RED de Acompañamiento Integral — Universidad Nacional de Colombia" />
+  <meta name="publisher" content="Universidad Nacional de Colombia" />
+  <meta name="geo.region" content="CO-DC" />
+  <meta name="geo.placename" content="Bogotá, Colombia" />
 
-  <!-- Google Fonts: Playfair Display (display) + DM Sans (body) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Open Graph (WhatsApp, Facebook, LinkedIn, Instagram) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Ociómetro · RAPsi UNAL" />
+  <meta property="og:locale" content="es_CO" />
+  <meta property="og:url" content="https://ociometro.vercel.app/" />
+  <meta property="og:title" content="Ociómetro · ¿En qué se te va la semana?" />
+  <meta property="og:description" content="Descubre cómo repartes tus 168 horas semanales y cuánto tiempo real te queda para ti. Calculadora gratuita de tiempo y bienestar de la Universidad Nacional de Colombia." />
+  <meta property="og:image" content="https://ociometro.vercel.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Ociómetro: calculadora de las 168 horas de tu semana — RAPsi UNAL" />
 
-  <!-- Estilos del proyecto -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ociómetro · ¿En qué se te va la semana?" />
+  <meta name="twitter:description" content="Calcula cómo repartes tus 168 horas semanales y cuánto tiempo real te queda para ti. Gratis, anónimo y sin registro." />
+  <meta name="twitter:image" content="https://ociometro.vercel.app/og-image.png" />
+
+  <!-- Iconos e instalación -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- ============================================================
+       Recursos propios (sin CDN de terceros): elimina el riesgo de
+       cadena de suministro y quita dos conexiones externas del
+       camino crítico de renderizado.
+  ============================================================ -->
+  <link rel="preload" as="font" type="font/woff2" href="/vendor/fonts/PlayfairDisplay-700-normal-lat.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="/vendor/fonts/DMSans-400-normal-lat.woff2" crossorigin />
+  <link rel="stylesheet" href="/vendor/fonts/google.css" />
+  <link rel="stylesheet" href="/styles.css" />
+
+  <script src="/vendor/chart-4.4.0.umd.min.js" defer></script>
+  <script src="/app.js" defer></script>
+
+  <!-- ============================================================
+       DATOS ESTRUCTURADOS (schema.org)
+       Permiten a Google mostrar la ficha del Ociómetro y las
+       preguntas frecuentes como resultado enriquecido.
+  ============================================================ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://ociometro.vercel.app/#website",
+        "url": "https://ociometro.vercel.app/",
+        "name": "Ociómetro",
+        "alternateName": "Calculadora de tiempo semanal RAPsi UNAL",
+        "inLanguage": "es-CO",
+        "publisher": { "@id": "https://ociometro.vercel.app/#org" }
+      },
+      {
+        "@type": "CollegeOrUniversity",
+        "@id": "https://ociometro.vercel.app/#org",
+        "name": "Universidad Nacional de Colombia",
+        "alternateName": "UNAL",
+        "url": "https://unal.edu.co/",
+        "department": {
+          "@type": "Organization",
+          "name": "RAPsi · RED de Acompañamiento Integral — Área de Acompañamiento Integral, Dirección de Bienestar, Sede Bogotá",
+          "sameAs": [
+            "https://www.instagram.com/rapsi.unal/",
+            "https://www.instagram.com/acompanamientounal_bog/"
+          ]
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Bogotá",
+          "addressCountry": "CO"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://ociometro.vercel.app/#app",
+        "name": "Ociómetro",
+        "url": "https://ociometro.vercel.app/",
+        "applicationCategory": "HealthApplication",
+        "applicationSubCategory": "Calculadora de tiempo y bienestar",
+        "operatingSystem": "Cualquier navegador web",
+        "browserRequirements": "Requiere JavaScript",
+        "inLanguage": "es-CO",
+        "isAccessibleForFree": true,
+        "image": "https://ociometro.vercel.app/og-image.png",
+        "description": "Calculadora de tiempo semanal que reparte las 168 horas de la semana entre sueño, alimentación, cuidado personal, transporte, estudio, trabajo, pantallas, deporte, vida social y hobbies, y entrega retroalimentación de bienestar con respaldo científico.",
+        "featureList": [
+          "Cálculo de las 168 horas semanales",
+          "Ociómetro: tiempo de bienestar disponible",
+          "Gráfico de distribución del tiempo",
+          "Retroalimentación personalizada con referencias científicas",
+          "Informe estadístico institucional 2026-1"
+        ],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "COP" },
+        "publisher": { "@id": "https://ociometro.vercel.app/#org" }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://ociometro.vercel.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Qué es el Ociómetro?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El Ociómetro es una calculadora gratuita de tiempo semanal creada por el Área de Acompañamiento Integral de la Universidad Nacional de Colombia. Registras cuántas horas dedicas a dormir, comer, estudiar, trabajar, transportarte y usar pantallas, y te muestra cuánto tiempo de bienestar te queda realmente de las 168 horas que tiene una semana."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo se calcula el tiempo libre de una semana?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Se parte de 168 horas (24 horas × 7 días) y se restan todas las horas comprometidas: sueño, alimentación, cuidado personal, transporte, clases, estudio autónomo, trabajo, tareas del hogar, otras obligaciones y pantallas recreativas. Lo que sobra es el tiempo libre neto. El Ociómetro además separa el tiempo de bienestar activo (deporte, vida social y hobbies) del ocio digital pasivo, porque no recargan igual."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Por qué la semana tiene 168 horas?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Porque 24 horas por 7 días son 168 horas exactas. Es el único recurso verdaderamente igualitario: todas las personas reciben la misma cantidad cada semana, sin importar su carrera, su empleo o su ciudad. La diferencia está en cómo se reparte."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuántas horas debería dormir un estudiante universitario?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Los CDC y la Organización Mundial de la Salud recomiendan entre 7 y 9 horas por noche para personas de 18 a 60 años, es decir entre 49 y 63 horas semanales. Dormir menos afecta la consolidación de la memoria, la regulación emocional y el riesgo metabólico."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cuánto tiempo de pantalla al día es saludable?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "En universitarios, superar las 3 horas diarias de pantallas recreativas (redes sociales, streaming y videojuegos, sin contar el estudio) se asocia con trastornos del sueño, agotamiento y mayor ansiedad (Osman, 2025). El promedio global en jóvenes adultos ronda las 6 horas diarias, según DataReportal 2024."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Qué diferencia hay entre tiempo libre y tiempo de bienestar?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "El tiempo libre es simplemente lo que queda sin comprometer. El tiempo de bienestar —lo que el Ociómetro mide— es el que se invierte en actividades que restauran de verdad: movimiento, vínculos con personas queridas y actividades creativas. Se puede tener mucho tiempo libre y poco bienestar si todo ese espacio se llena de consumo digital pasivo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿El Ociómetro guarda mis datos personales?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. La calculadora funciona por completo dentro de tu navegador: no pide nombre, correo ni documento, no crea cuentas y no envía tus respuestas a ningún servidor. El único registro se guarda en el almacenamiento local de tu propio dispositivo para que puedas comparar tu resultado con el Informe 2026-1, y desaparece si borras los datos del navegador. El tratamiento de datos se ajusta a la Ley 1581 de 2012."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Puedo usar el Ociómetro si no soy estudiante de la UNAL?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. Es una herramienta pública, gratuita y abierta a cualquier persona. Tiene una casilla para indicar si estudias actualmente: si la desmarcas, el cálculo se ajusta a una semana sin carga académica y sirve igual para personas trabajadoras, docentes, egresadas o cuidadoras."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
 
+  <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
   <!-- Barra de progreso al hacer scroll -->
-  <div id="progress-bar"></div>
+  <div id="progress-bar" aria-hidden="true"></div>
 
   <!-- HEADER -->
   <header>
     <div class="container">
-      <nav>
-        <a class="nav-brand" href="#">
-          <div class="logo-icon">⏱</div>
-          <span>RAPsi · UNAL</span>
+      <nav aria-label="Navegación principal">
+        <a class="nav-brand" href="/">
+          <div class="logo-icon" aria-hidden="true">⏱</div>
+          <span class="nav-brand-text">
+            <strong>Ociómetro</strong>
+            <small>RAPsi · UNAL</small>
+          </span>
         </a>
         <ul class="nav-links">
           <li><a href="#calculadora">Calculadora</a></li>
           <li><a href="#resultados">Resultados</a></li>
+          <li><a href="#preguntas">Preguntas</a></li>
           <li><a href="#nosotros">Nosotros</a></li>
-          <li><a href="./stats/" class="nav-stats-link">Informe 2026-1</a></li>
+          <li><a href="/stats" class="nav-stats-link">Informe 2026-1</a></li>
         </ul>
         <details class="nav-mobile">
-          <summary aria-label="Abrir menú">
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
+          <summary aria-label="Abrir menú de navegación">
+            <span class="hamburger-bar" aria-hidden="true"></span>
+            <span class="hamburger-bar" aria-hidden="true"></span>
+            <span class="hamburger-bar" aria-hidden="true"></span>
           </summary>
           <ul class="nav-mobile-list">
             <li><a href="#calculadora">Calculadora</a></li>
             <li><a href="#resultados">Resultados</a></li>
+            <li><a href="#preguntas">Preguntas</a></li>
             <li><a href="#nosotros">Nosotros</a></li>
-            <li><a href="./stats/" class="nav-stats-link">Informe 2026-1</a></li>
+            <li><a href="/stats" class="nav-stats-link">Informe 2026-1</a></li>
           </ul>
         </details>
       </nav>
     </div>
   </header>
 
+  <main id="contenido">
+
   <!-- HERO -->
   <section class="hero">
     <div class="container">
       <div class="hero-inner">
         <div class="hero-text">
-          <p class="hero-kicker">Bienestar estudiantil · 168 horas</p>
+          <p class="hero-kicker">Ociómetro · Bienestar estudiantil UNAL</p>
           <h1 class="hero-title">
             ¿En qué se te<br />
             va la <em>semana</em>?
@@ -68,10 +249,12 @@
           <p class="hero-desc">
             Cada semana tienes exactamente 168 horas. Entre el sueño, el estudio, el transporte
             y la pantalla… ¿cuánto tiempo real te queda para <strong>ti</strong>?
+            Esta <strong>calculadora de tiempo semanal</strong> te lo muestra en un minuto:
+            gratis, anónima y sin registro.
           </p>
           <a href="#calculadora" class="hero-cta">
             Descubrirlo ahora
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"
                  stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
@@ -83,11 +266,11 @@
             <div class="hours-big">168</div>
             <p class="hours-sub">horas disponibles cada semana</p>
             <div class="pill-row">
-              <span class="pill pill--sleep"><span class="dot"></span>Dormir</span>
-              <span class="pill pill--study"><span class="dot"></span>Estudiar</span>
-              <span class="pill pill--work"><span class="dot"></span>Trabajo</span>
-              <span class="pill pill--screen"><span class="dot"></span>Pantallas</span>
-              <span class="pill pill--free"><span class="dot"></span>Tiempo libre</span>
+              <span class="pill pill--sleep"><span class="dot" aria-hidden="true"></span>Dormir</span>
+              <span class="pill pill--study"><span class="dot" aria-hidden="true"></span>Estudiar</span>
+              <span class="pill pill--work"><span class="dot" aria-hidden="true"></span>Trabajo</span>
+              <span class="pill pill--screen"><span class="dot" aria-hidden="true"></span>Pantallas</span>
+              <span class="pill pill--free"><span class="dot" aria-hidden="true"></span>Tiempo libre</span>
             </div>
           </div>
         </div>
@@ -105,10 +288,10 @@
           Completa los campos con tus rutinas. No hay respuestas correctas o incorrectas.
         </p>
         <p class="app-purpose">
-          <strong>¿Qué es esto?</strong> Una herramienta de autoconocimiento
-          del Área de Acompañamiento Integral de UNAL. Registra cómo
-          distribuyes tus 168 horas semanales y recibe retroalimentación
-          personalizada sobre tu bienestar.
+          <strong>¿Qué es el Ociómetro?</strong> Una herramienta gratuita de autoconocimiento
+          del Área de Acompañamiento Integral de la Universidad Nacional de Colombia.
+          Registra cómo distribuyes tus 168 horas semanales entre estudio, trabajo, descanso
+          y pantallas, y recibe retroalimentación personalizada sobre tu bienestar.
         </p>
         <p class="section-motivacional">
           Al finalizar, recibirás <strong>recomendaciones personalizadas</strong> sobre cómo estás usando tu tiempo esta semana.
@@ -116,8 +299,8 @@
       </div>
 
       <!-- CONSENTIMIENTO — Ley 1581 de 2012 -->
-      <div class="consent-box">
-        <input type="checkbox" id="consent_accepted" required />
+      <div class="consent-box" id="consent-box">
+        <input type="checkbox" id="consent_accepted" required aria-describedby="consent-error" />
         <label class="consent-label" for="consent_accepted">
           <strong>Acepto el tratamiento de mis datos</strong>
           con fines estrictamente académicos y de investigación estadística para
@@ -127,14 +310,17 @@
           <span class="law-badge">Ley 1581 / 2012</span>
         </label>
       </div>
+      <p class="consent-error" id="consent-error" role="alert" hidden>
+        Para ver tus resultados necesitas aceptar primero el tratamiento de datos (Ley 1581 de 2012).
+      </p>
 
       <div class="hours-counter" id="hours-counter">
         <span class="hc-label">Horas registradas</span>
         <div class="hc-value"><span id="hc-used">0</span><span class="hc-of"> / 168 h</span></div>
         <div class="hc-bar-wrap"><div class="hc-bar" id="hc-bar"></div></div>
       </div>
-      <div class="hours-overflow" id="hours-overflow" hidden>
-        <span class="hours-overflow-icon">⚠️</span>
+      <div class="hours-overflow" id="hours-overflow" role="status" hidden>
+        <span class="hours-overflow-icon" aria-hidden="true">⚠️</span>
         <div class="hours-overflow-body">
           Las matemáticas no mienten: has superado las 168h. Si sientes que vives así, la multitarea te engaña o algo vital (como el sueño) está cediendo. Ajusta los valores para calcular.
         </div>
@@ -144,7 +330,7 @@
 
         <!-- BLOQUE 1: Lo que haces todos los días -->
         <div class="input-group group--estructural">
-          <h3><span class="icon">🌙</span> Lo que haces todos los días</h3>
+          <h3><span class="icon" aria-hidden="true">🌙</span> Lo que haces todos los días</h3>
 
           <div class="sliders-area">
 
@@ -154,10 +340,11 @@
               <span class="time-chip time-chip--day">DÍA</span>
             </div>
             <div class="range-wrapper">
-              <input type="range" id="sleep" min="4" max="12" step="0.5" value="7" oninput="syncRange('sleep')" />
+              <input type="range" id="sleep" min="4" max="12" step="0.5" value="7"
+                     aria-describedby="sleep-hint" />
               <span class="range-value" id="sleep-val">7 h</span>
             </div>
-            <p class="hint">Cuenta sueño nocturno y siestas regulares si las haces</p>
+            <p class="hint" id="sleep-hint">Cuenta sueño nocturno y siestas regulares si las haces</p>
           </div>
 
           <div class="field">
@@ -166,10 +353,11 @@
               <span class="time-chip time-chip--day">DÍA</span>
             </div>
             <div class="range-wrapper">
-              <input type="range" id="food" min="0.5" max="4" step="0.5" value="1.5" oninput="syncRange('food')" />
+              <input type="range" id="food" min="0.5" max="4" step="0.5" value="1.5"
+                     aria-describedby="food-hint" />
               <span class="range-value" id="food-val">1.5 h</span>
             </div>
-            <p class="hint">Preparar, comer y descansar post-comida</p>
+            <p class="hint" id="food-hint">Preparar, comer y descansar post-comida</p>
           </div>
 
           <div class="field">
@@ -178,10 +366,11 @@
               <span class="time-chip time-chip--day">DÍA</span>
             </div>
             <div class="range-wrapper">
-              <input type="range" id="grooming" min="0" max="4" step="0.5" value="1" oninput="syncRange('grooming')" />
+              <input type="range" id="grooming" min="0" max="4" step="0.5" value="1"
+                     aria-describedby="grooming-hint" />
               <span class="range-value" id="grooming-val">1 h</span>
             </div>
-            <p class="hint">Higiene, vestimenta y rituales de autocuidado</p>
+            <p class="hint" id="grooming-hint">Higiene, vestimenta y rituales de autocuidado</p>
           </div>
 
           <div class="field">
@@ -190,10 +379,11 @@
               <span class="time-chip time-chip--day">DÍA</span>
             </div>
             <div class="range-wrapper">
-              <input type="range" id="screen" min="0" max="16" step="0.5" value="3" oninput="syncRange('screen')" />
+              <input type="range" id="screen" min="0" max="16" step="0.5" value="3"
+                     aria-describedby="screen-hint" />
               <span class="range-value" id="screen-val">3 h</span>
             </div>
-            <p class="hint">Redes sociales, streaming, videojuegos (no estudio)</p>
+            <p class="hint" id="screen-hint">Redes sociales, streaming, videojuegos (no estudio)</p>
           </div>
 
           </div><!-- /.sliders-area -->
@@ -202,12 +392,12 @@
 
         <!-- BLOQUE 2: Lo que haces cada semana -->
         <div class="input-group group--academica">
-          <h3><span class="icon">📋</span> Lo que haces cada semana</h3>
+          <h3><span class="icon" aria-hidden="true">📋</span> Lo que haces cada semana</h3>
 
           <div class="sliders-area">
 
           <div class="note-box col-full" style="margin-bottom: 1.2rem;">
-            <span class="note-icon">⚠️</span>
+            <span class="note-icon" aria-hidden="true">⚠️</span>
             <p><strong>¡Atención!</strong> Si realizas dos actividades al mismo tiempo (ej: usar el celular mientras te transportas, o escuchar un podcast mientras haces ejercicio), regístralo solo en una categoría. No cuentes la misma hora dos veces para que tu balance de 168 horas sea real.</p>
           </div>
 
@@ -218,10 +408,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="transit_hours" min="0" max="30" step="0.5" value="6" oninput="syncRange('transit_hours')" />
+                <input type="range" id="transit_hours" min="0" max="30" step="0.5" value="6"
+                       aria-describedby="transit_hours-hint" />
                 <span class="range-value" id="transit_hours-val">6 h</span>
               </div>
-              <p class="hint">Suma todos tus trayectos de la semana (ida + vuelta)</p>
+              <p class="hint" id="transit_hours-hint">Suma todos tus trayectos de la semana (ida + vuelta)</p>
             </div>
 
             <div class="field">
@@ -230,10 +421,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="house_tasks" min="0" max="20" step="0.5" value="4" oninput="syncRange('house_tasks')" />
+                <input type="range" id="house_tasks" min="0" max="20" step="0.5" value="4"
+                       aria-describedby="house_tasks-hint" />
                 <span class="range-value" id="house_tasks-val">4 h</span>
               </div>
-              <p class="hint">Aseo, lavado, compras, organización</p>
+              <p class="hint" id="house_tasks-hint">Aseo, lavado, compras, organización</p>
             </div>
           </div>
 
@@ -251,10 +443,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="class_hours" min="0" max="30" step="0.5" value="0" oninput="syncRange('class_hours')" />
+                <input type="range" id="class_hours" min="0" max="30" step="0.5" value="0"
+                       aria-describedby="class_hours-hint" />
                 <span class="range-value" id="class_hours-val">0 h</span>
               </div>
-              <p class="hint">clases presenciales o virtuales</p>
+              <p class="hint" id="class_hours-hint">clases presenciales o virtuales</p>
             </div>
 
             <div class="field">
@@ -263,10 +456,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="self_study_hours" min="0" max="40" step="0.5" value="0" oninput="syncRange('self_study_hours')" />
+                <input type="range" id="self_study_hours" min="0" max="40" step="0.5" value="0"
+                       aria-describedby="self_study_hours-hint" />
                 <span class="range-value" id="self_study_hours-val">0 h</span>
               </div>
-              <p class="hint">lecturas, tareas, repasos por fuera de clase</p>
+              <p class="hint" id="self_study_hours-hint">lecturas, tareas, repasos por fuera de clase</p>
             </div>
           </div>
 
@@ -277,10 +471,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="work" min="0" max="60" step="1" value="0" oninput="syncRange('work')" />
+                <input type="range" id="work" min="0" max="60" step="1" value="0"
+                       aria-describedby="work-hint" />
                 <span class="range-value" id="work-val">0 h</span>
               </div>
-              <p class="hint">Empleo formal, informal o prácticas remuneradas</p>
+              <p class="hint" id="work-hint">Empleo formal, informal o prácticas remuneradas</p>
             </div>
 
             <div class="field">
@@ -288,8 +483,10 @@
                 <label for="other">Otras obligaciones</label>
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
-              <input type="number" id="other" min="0" max="60" value="0" placeholder="Ej: 4 (tutorías, servicio social...)" oninput="updateCounter()" />
-              <p class="hint">Cuidado de personas, tutorías, voluntariado</p>
+              <input type="number" id="other" min="0" max="60" step="0.5" value="0"
+                     inputmode="decimal" placeholder="Ej: 4 (tutorías, servicio social...)"
+                     aria-describedby="other-hint" />
+              <p class="hint" id="other-hint">Cuidado de personas, tutorías, voluntariado</p>
             </div>
           </div>
 
@@ -300,10 +497,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="physical_activity" min="0" max="20" step="0.5" value="2" oninput="syncRange('physical_activity')" />
+                <input type="range" id="physical_activity" min="0" max="20" step="0.5" value="2"
+                       aria-describedby="physical_activity-hint" />
                 <span class="range-value" id="physical_activity-val">2 h</span>
               </div>
-              <p class="hint">Ejercicio, deporte, caminatas activas</p>
+              <p class="hint" id="physical_activity-hint">Ejercicio, deporte, caminatas activas</p>
             </div>
 
             <div class="field">
@@ -312,10 +510,11 @@
                 <span class="time-chip time-chip--week">SEMANA</span>
               </div>
               <div class="range-wrapper">
-                <input type="range" id="social_activity" min="0" max="20" step="0.5" value="3" oninput="syncRange('social_activity')" />
+                <input type="range" id="social_activity" min="0" max="20" step="0.5" value="3"
+                       aria-describedby="social_activity-hint" />
                 <span class="range-value" id="social_activity-val">3 h</span>
               </div>
-              <p class="hint">Tiempo de calidad con amigos, pareja, familia</p>
+              <p class="hint" id="social_activity-hint">Tiempo de calidad con amigos, pareja, familia</p>
             </div>
           </div>
 
@@ -325,10 +524,11 @@
               <span class="time-chip time-chip--week">SEMANA</span>
             </div>
             <div class="range-wrapper">
-              <input type="range" id="hobby_wellbeing" min="0" max="30" step="0.5" value="6" oninput="syncRange('hobby_wellbeing')" />
+              <input type="range" id="hobby_wellbeing" min="0" max="30" step="0.5" value="6"
+                     aria-describedby="hobby_wellbeing-hint" />
               <span class="range-value" id="hobby_wellbeing-val">6 h</span>
             </div>
-            <p class="hint">Creatividad, hobbies, actividades restauradoras</p>
+            <p class="hint" id="hobby_wellbeing-hint">Creatividad, hobbies, actividades restauradoras</p>
           </div>
 
           </div><!-- /.sliders-area -->
@@ -337,9 +537,11 @@
 
       </div><!-- /.calc-grid -->
 
-      <button class="btn-calc" onclick="calcular()">
+      <button type="button" class="btn-calc" id="btn-calc">
         Calcular mi tiempo disponible ⟶
       </button>
+
+      <p class="sr-only" id="calc-status" role="status" aria-live="polite"></p>
 
     </div>
   </section>
@@ -442,8 +644,9 @@
       <h2 class="section-title">Tu semana en colores</h2>
       <div class="chart-wrapper">
         <div class="chart-canvas-wrap">
-          <canvas id="weekChart" width="380" height="380"></canvas>
-          <div class="chart-center-text">
+          <canvas id="weekChart" width="380" height="380"
+                  role="img" aria-label="Gráfico de dona con la distribución de tus 168 horas semanales. El detalle en cifras está en la lista contigua."></canvas>
+          <div class="chart-center-text" aria-hidden="true">
             <div class="ct-hours" id="chart-center-h">168</div>
             <div class="ct-label">horas totales</div>
           </div>
@@ -492,7 +695,7 @@
           tus 168 horas cada semana.
         </p>
         <div class="rapsi-badge">
-          <div class="rb-icon">🧠</div>
+          <div class="rb-icon" aria-hidden="true">🧠</div>
           <div class="rb-text">
             <strong>RAPsi · RED de Acompañamiento Integral UNAL</strong>
             Ruta de acompañamiento psicosocial para la comunidad universitaria
@@ -502,14 +705,123 @@
     </div>
   </section>
 
+  <!-- ============================================================
+       PREGUNTAS FRECUENTES
+       Contenido indexable que responde las consultas reales por
+       las que la gente llega ("calculadora de tiempo semanal",
+       "cuántas horas debo dormir", "168 horas"). Va acompañado
+       del bloque FAQPage en los datos estructurados del <head>.
+  ============================================================ -->
+  <section class="faq-section" id="preguntas">
+    <div class="container">
+      <span class="tag">Preguntas frecuentes</span>
+      <h2 class="section-title">Sobre el Ociómetro y tu tiempo</h2>
+      <p class="section-sub">
+        Lo que más nos preguntan sobre la calculadora, el cálculo de las 168 horas
+        y el manejo de los datos.
+      </p>
+
+      <div class="faq-list">
+
+        <details class="faq-item">
+          <summary><h3>¿Qué es el Ociómetro?</h3></summary>
+          <p>
+            El <strong>Ociómetro</strong> es una calculadora gratuita de tiempo semanal creada por el
+            Área de Acompañamiento Integral de la <strong>Universidad Nacional de Colombia</strong>.
+            Registras cuántas horas dedicas a dormir, comer, estudiar, trabajar, transportarte y usar
+            pantallas, y te muestra cuánto <strong>tiempo de bienestar</strong> te queda realmente de
+            las 168 horas que tiene una semana.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Cómo se calcula el tiempo libre de una semana?</h3></summary>
+          <p>
+            Se parte de <strong>168 horas</strong> (24 horas × 7 días) y se restan todas las horas
+            comprometidas: sueño, alimentación, cuidado personal, transporte, clases, estudio
+            autónomo, trabajo, tareas del hogar, otras obligaciones y pantallas recreativas. Lo que
+            sobra es el tiempo libre neto. El Ociómetro además separa el <strong>bienestar activo</strong>
+            (deporte, vida social y hobbies) del <strong>ocio digital pasivo</strong>, porque no
+            recargan igual.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Por qué la semana tiene 168 horas?</h3></summary>
+          <p>
+            Porque 24 horas por 7 días son 168 horas exactas. Es el único recurso verdaderamente
+            igualitario: todas las personas reciben la misma cantidad cada semana, sin importar su
+            carrera, su empleo o su ciudad. La diferencia está en cómo se reparte.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Cuántas horas debería dormir un estudiante universitario?</h3></summary>
+          <p>
+            Los CDC y la Organización Mundial de la Salud recomiendan entre <strong>7 y 9 horas por
+            noche</strong> para personas de 18 a 60 años, es decir entre 49 y 63 horas semanales.
+            Dormir menos afecta la consolidación de la memoria, la regulación emocional y el riesgo
+            metabólico.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Cuánto tiempo de pantalla al día es saludable?</h3></summary>
+          <p>
+            En universitarios, superar las <strong>3 horas diarias</strong> de pantallas recreativas
+            (redes sociales, streaming y videojuegos, sin contar el estudio) se asocia con trastornos
+            del sueño, agotamiento y mayor ansiedad (Osman, 2025). El promedio global en jóvenes
+            adultos ronda las 6 horas diarias, según DataReportal 2024.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Qué diferencia hay entre tiempo libre y tiempo de bienestar?</h3></summary>
+          <p>
+            El <strong>tiempo libre</strong> es simplemente lo que queda sin comprometer. El
+            <strong>tiempo de bienestar</strong> —lo que el Ociómetro mide— es el que se invierte en
+            actividades que restauran de verdad: movimiento, vínculos con personas queridas y
+            actividades creativas. Se puede tener mucho tiempo libre y poco bienestar si todo ese
+            espacio se llena de consumo digital pasivo.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿El Ociómetro guarda mis datos personales?</h3></summary>
+          <p>
+            <strong>No.</strong> La calculadora funciona por completo dentro de tu navegador: no pide
+            nombre, correo ni documento, no crea cuentas y no envía tus respuestas a ningún servidor.
+            El único registro se guarda en el almacenamiento local de tu propio dispositivo para que
+            puedas comparar tu resultado con el <a href="/stats">Informe 2026-1</a>, y desaparece si
+            borras los datos del navegador. El tratamiento de datos se ajusta a la
+            <strong>Ley 1581 de 2012</strong>.
+          </p>
+        </details>
+
+        <details class="faq-item">
+          <summary><h3>¿Puedo usar el Ociómetro si no soy estudiante de la UNAL?</h3></summary>
+          <p>
+            Sí. Es una herramienta pública, gratuita y abierta a cualquier persona. Tiene una casilla
+            para indicar si estudias actualmente: si la desmarcas, el cálculo se ajusta a una semana
+            sin carga académica y sirve igual para personas trabajadoras, docentes, egresadas o
+            cuidadoras.
+          </p>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  </main>
+
   <!-- FOOTER INSTITUCIONAL -->
   <footer id="nosotros">
     <div class="container">
       <div class="footer-inner">
         <div class="footer-brand">
-          <div class="footer-logo">⏱</div>
+          <div class="footer-logo" aria-hidden="true">⏱</div>
           <div class="footer-brand-text">
-            <strong>RAPsi</strong>
+            <strong>Ociómetro · RAPsi</strong>
             <span>RED de Acompañamiento Integral UNAL</span>
           </div>
         </div>
@@ -521,7 +833,7 @@
         </div>
         <div class="footer-social">
           <a href="https://www.instagram.com/rapsi.unal/" target="_blank" rel="noopener noreferrer" class="footer-ig">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"
                  fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
               <circle cx="12" cy="12" r="4"/>
@@ -532,13 +844,10 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>Herramienta de autocuidado y bienestar estudiantil &middot; <span class="footer-tool">Calculadora de Tiempo Semanal</span></p>
+        <p>Herramienta de autocuidado y bienestar estudiantil &middot; <span class="footer-tool">Ociómetro · Calculadora de Tiempo Semanal</span></p>
       </div>
     </div>
   </footer>
-
-  <!-- Lógica de la aplicación (al final del body) -->
-  <script src="app.js"></script>
 
 </body>
 </html>

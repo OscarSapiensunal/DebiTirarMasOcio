@@ -1,0 +1,19 @@
+{
+  "name": "Ociómetro · Calculadora de tiempo semanal",
+  "short_name": "Ociómetro",
+  "description": "Descubre cómo repartes tus 168 horas semanales y cuánto tiempo real te queda para ti. Herramienta de bienestar de RAPsi · Universidad Nacional de Colombia.",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#e8ecff",
+  "theme_color": "#27546c",
+  "categories": ["health", "education", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -871,15 +871,15 @@ input[type="number"]:focus {
   line-height: 1;
 }
 
-.feedback-card .fc-content h4 {
+.feedback-card .fc-content h3 {
   font-family: var(--font-display);
   font-size: 1.05rem;
   color: var(--color-principal);
   margin-bottom: .3rem;
 }
 
-.feedback-card.warn .fc-content h4 { color: #c94340; }
-.feedback-card.ok   .fc-content h4 { color: #2e7a29; }
+.feedback-card.warn .fc-content h3 { color: #c94340; }
+.feedback-card.ok   .fc-content h3 { color: #2e7a29; }
 
 .feedback-card .fc-content p {
   font-size: .92rem;
@@ -1755,4 +1755,222 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   .rapsi-toast { transition: opacity .2s ease; transform: none; }
   .rapsi-toast--in, .rapsi-toast--out { transform: none; }
+}
+
+/* ============================================================
+   ACCESIBILIDAD — utilidades transversales
+   Añadidas en la preparación del despliegue público: el sitio
+   debe ser usable con teclado y con lector de pantalla, no solo
+   con ratón.
+============================================================ */
+
+/* Regla de seguridad: el atributo [hidden] debe ganarle a
+   cualquier `display` declarado por una clase de layout. */
+[hidden] { display: none !important; }
+
+/* Texto solo para lectores de pantalla (anuncios de estado). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Primer tabulador de la página: salta la navegación. */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100px;
+  z-index: 1000;
+  padding: .7rem 1.2rem;
+  background: var(--color-principal);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: .9rem;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  text-decoration: none;
+  transition: top .18s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Foco visible y consistente en todo lo interactivo.
+   Sin esto, quien navega con teclado no sabe dónde está. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+details.faq-item > summary:focus-visible {
+  outline: 3px solid var(--color-principal);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   MARCA EN LA NAVEGACIÓN — "Ociómetro" como nombre del producto
+============================================================ */
+.nav-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.nav-brand-text strong {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-principal);
+  letter-spacing: -.01em;
+}
+
+.nav-brand-text small {
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================
+   AVISO DE CONSENTIMIENTO (sustituye al alert() del navegador)
+============================================================ */
+.consent-box--error {
+  border-color: var(--color-acento-f) !important;
+  background: rgba(255, 148, 145, .07) !important;
+}
+
+.consent-error {
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+  margin-top: .7rem;
+  padding: .7rem 1rem;
+  background: rgba(255, 148, 145, .12);
+  border-left: 3px solid var(--color-acento-f);
+  border-radius: var(--radius-sm);
+  color: #a8322f;
+  font-family: var(--font-body);
+  font-size: .87rem;
+  font-weight: 500;
+}
+
+.consent-error::before {
+  content: "⚠️";
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   PREGUNTAS FRECUENTES
+   Contenido siempre presente en el HTML (los buscadores lo leen
+   aunque el acordeón esté plegado) y operable con teclado por
+   ser <details>/<summary> nativos.
+============================================================ */
+.faq-section {
+  padding: 5rem 0;
+  background: var(--color-neutral);
+}
+
+.faq-list {
+  max-width: 780px;
+  margin: 2.5rem auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.faq-item {
+  background: var(--color-white);
+  border: 1px solid rgba(39, 84, 108, .12);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.faq-item[open] {
+  border-color: rgba(39, 84, 108, .28);
+  box-shadow: var(--shadow);
+}
+
+.faq-item > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.4rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.faq-item > summary::-webkit-details-marker { display: none; }
+
+.faq-item > summary h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-principal);
+  margin: 0;
+}
+
+/* Indicador +/− dibujado en CSS: no depende de ninguna fuente
+   de iconos externa. */
+.faq-item > summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .22s ease;
+}
+
+.faq-item[open] > summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+}
+
+.faq-item > p {
+  padding: 0 1.4rem 1.35rem;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: .95rem;
+  line-height: 1.75;
+  color: var(--color-text-muted);
+}
+
+.faq-item > p a {
+  color: var(--color-principal);
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .faq-section { padding: 3.5rem 0; }
+  .faq-item > summary { padding: 1rem 1.1rem; }
+  .faq-item > summary h3 { font-size: .95rem; }
+  .faq-item > p { padding: 0 1.1rem 1.15rem; font-size: .9rem; }
+}
+
+/* ============================================================
+   REDUCIR MOVIMIENTO — respeta la preferencia del sistema.
+   Relevante para personas con vértigo, migraña o sensibilidad
+   vestibular; también es criterio WCAG 2.3.3.
+============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

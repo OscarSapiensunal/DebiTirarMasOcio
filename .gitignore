@@ -1,0 +1,24 @@
+# Vercel
+.vercel/
+
+# Dependencias y artefactos de build (el sitio es estático, pero
+# evita subir basura si alguien corre una herramienta local)
+node_modules/
+dist/
+build/
+*.log
+
+# Variables de entorno — nunca deben llegar al repositorio
+.env
+.env.*
+!.env.example
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp

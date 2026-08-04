@@ -1,75 +1,141 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-CO">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2327546c'/%3E%3Ccircle cx='16' cy='17.5' r='8' fill='none' stroke='white' stroke-width='1.8'/%3E%3Cpath d='M16 17.5 V 12.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M16 17.5 L 19.5 17.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='13' y='5' width='6' height='2.5' rx='0.8' fill='%2327546c' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2327546c'/%3E%3Ccircle cx='16' cy='17.5' r='8' fill='none' stroke='white' stroke-width='1.8'/%3E%3Cpath d='M16 17.5 V 12.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M16 17.5 L 19.5 17.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Crect x='13' y='5' width='6' height='2.5' rx='0.8' fill='%2327546c' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E" />
-  <title>Dashboard de Análisis · RAPsi UNAL</title>
-  <meta name="description" content="Dashboard estadístico de bienestar universitario · RAPsi UNAL" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#27546c" />
 
-  <!-- Chart.js via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- ============================================================
+       SEO — página secundaria: el informe estadístico
+  ============================================================ -->
+  <title>Informe de bienestar universitario 2026-1 · Ociómetro UNAL</title>
+  <meta name="description" content="Estadísticas anónimas de cómo la comunidad de la Universidad Nacional de Colombia reparte sus 168 horas semanales: sueño, carga académica, transporte, pantallas y tiempo de bienestar. Informe 2026-1 del Área de Acompañamiento Integral." />
+  <link rel="canonical" href="https://ociometro.vercel.app/stats" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <meta name="author" content="RAPsi · RED de Acompañamiento Integral — Universidad Nacional de Colombia" />
 
-  <!-- Google Fonts: Playfair Display + DM Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Open Graph -->
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Ociómetro · RAPsi UNAL" />
+  <meta property="og:locale" content="es_CO" />
+  <meta property="og:url" content="https://ociometro.vercel.app/stats" />
+  <meta property="og:title" content="Informe de bienestar universitario 2026-1 · Ociómetro UNAL" />
+  <meta property="og:description" content="Cómo reparte sus 168 horas semanales la comunidad de la Universidad Nacional de Colombia: sueño, estudio, transporte, pantallas y bienestar. Datos anónimos." />
+  <meta property="og:image" content="https://ociometro.vercel.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Ociómetro: calculadora de las 168 horas de tu semana — RAPsi UNAL" />
 
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Informe de bienestar universitario 2026-1 · Ociómetro UNAL" />
+  <meta name="twitter:description" content="Estadísticas anónimas del uso del tiempo en la comunidad de la Universidad Nacional de Colombia." />
+  <meta name="twitter:image" content="https://ociometro.vercel.app/og-image.png" />
+
+  <!-- Iconos e instalación -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- Recursos propios (sin CDN de terceros) -->
+  <link rel="preload" as="font" type="font/woff2" href="/vendor/fonts/PlayfairDisplay-700-normal-lat.woff2" crossorigin />
+  <link rel="preload" as="font" type="font/woff2" href="/vendor/fonts/DMSans-400-normal-lat.woff2" crossorigin />
+  <link rel="stylesheet" href="/vendor/fonts/google.css" />
   <!-- Base institucional desde la raíz -->
-  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="/styles.css" />
   <!-- Estilos específicos del dashboard -->
-  <link rel="stylesheet" href="stats.css" />
+  <link rel="stylesheet" href="/stats/stats.css" />
+
+  <script src="/vendor/chart-4.4.0.umd.min.js" defer></script>
+  <script src="/stats/stats.js" defer></script>
+
+  <!-- Datos estructurados: informe + migas de pan -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Dataset",
+        "name": "Informe de bienestar universitario 2026-1 · Ociómetro UNAL",
+        "description": "Registros anónimos del uso del tiempo semanal (168 horas) recogidos con el Ociómetro entre la comunidad de la Universidad Nacional de Colombia durante el periodo 2026-1. Incluye horas de sueño, alimentación, cuidado personal, transporte, carga académica, trabajo, pantallas recreativas, actividad física, tiempo social y hobbies.",
+        "url": "https://ociometro.vercel.app/stats",
+        "inLanguage": "es-CO",
+        "isAccessibleForFree": true,
+        "keywords": ["bienestar universitario", "uso del tiempo", "168 horas", "sueño", "carga académica", "Universidad Nacional de Colombia"],
+        "spatialCoverage": "Bogotá, Colombia",
+        "creator": {
+          "@type": "Organization",
+          "name": "RAPsi · RED de Acompañamiento Integral — Área de Acompañamiento Integral, Universidad Nacional de Colombia",
+          "url": "https://ociometro.vercel.app/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Ociómetro", "item": "https://ociometro.vercel.app/" },
+          { "@type": "ListItem", "position": 2, "name": "Informe 2026-1", "item": "https://ociometro.vercel.app/stats" }
+        ]
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
+
+  <a class="skip-link" href="#contenido">Saltar al contenido principal</a>
 
   <!-- HEADER -->
   <header>
     <div class="container">
-      <nav>
-        <a class="nav-brand" href="../index.html">
-          <div class="logo-icon">⏱</div>
-          <span>RAPsi · UNAL</span>
+      <nav aria-label="Navegación principal">
+        <a class="nav-brand" href="/">
+          <div class="logo-icon" aria-hidden="true">⏱</div>
+          <span class="nav-brand-text">
+            <strong>Ociómetro</strong>
+            <small>RAPsi · UNAL</small>
+          </span>
         </a>
         <ul class="nav-links">
-          <li><a href="../index.html">Calculadora</a></li>
-          <li><a href="#" class="nav-active">Informe 2026-1</a></li>
+          <li><a href="/">Calculadora</a></li>
+          <li><a href="/stats" class="nav-active" aria-current="page">Informe 2026-1</a></li>
         </ul>
         <details class="nav-mobile">
-          <summary aria-label="Abrir menú">
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
+          <summary aria-label="Abrir menú de navegación">
+            <span class="hamburger-bar" aria-hidden="true"></span>
+            <span class="hamburger-bar" aria-hidden="true"></span>
+            <span class="hamburger-bar" aria-hidden="true"></span>
           </summary>
           <ul class="nav-mobile-list">
-            <li><a href="../index.html">Calculadora</a></li>
-            <li><a href="#" class="nav-active">Informe 2026-1</a></li>
+            <li><a href="/">Calculadora</a></li>
+            <li><a href="/stats" class="nav-active" aria-current="page">Informe 2026-1</a></li>
           </ul>
         </details>
       </nav>
     </div>
   </header>
 
+  <main id="contenido">
+
   <!-- HERO DEL DASHBOARD -->
   <section class="dash-hero">
     <div class="container">
       <span class="tag">Informe 2026-1 · Datos anónimos</span>
-      <h1 class="section-title" style="margin-top:.75rem">Dashboard de Informe 2026-1</h1>
+      <h1 class="section-title" style="margin-top:.75rem">Informe de bienestar universitario 2026-1</h1>
       <p class="section-sub">
-        Mira las estadísticas de las personas que han
-        llenado la calculadora de bienestar. Todos los valores son
-        promedios anónimos y no identifican a ningún usuario individual.
+        Así reparte sus 168 horas semanales la comunidad que ha usado el
+        <a href="/">Ociómetro</a>. Todos los valores son promedios anónimos
+        y no identifican a ninguna persona en particular.
       </p>
     </div>
   </section>
 
   <!-- FILTROS (sticky) -->
-  <section class="filters-section">
+  <section class="filters-section" aria-label="Filtros del informe">
     <div class="container">
       <details class="filters-details" open id="filters-details">
         <summary class="filters-summary">
           <span>Filtros</span>
-          <span class="filters-chevron">▼</span>
+          <span class="filters-chevron" aria-hidden="true">▼</span>
         </summary>
         <div class="filters-bar">
           <div class="filter-group filter-group--timeline">
@@ -93,8 +159,8 @@
                 <div class="timeline-rail"></div>
                 <div class="timeline-fill" id="tl-fill"></div>
 
-                <div class="tl-bubble" id="tl-bubble-from"></div>
-                <div class="tl-bubble" id="tl-bubble-to"></div>
+                <div class="tl-bubble" id="tl-bubble-from" aria-hidden="true"></div>
+                <div class="tl-bubble" id="tl-bubble-to" aria-hidden="true"></div>
 
                 <button type="button" class="timeline-milestone" id="tl-milestone"
                         style="left:33.333%"
@@ -113,7 +179,7 @@
                 <input type="range" id="range-to"   class="tl-range" min="0" max="1" step="1" value="1" aria-label="Fecha de fin" />
               </div>
 
-              <button class="btn-apply" onclick="applyFilters()">Aplicar filtros</button>
+              <button type="button" class="btn-apply" id="btn-apply">Aplicar filtros</button>
             </div>
           </div>
         </div>
@@ -122,43 +188,43 @@
   </section>
 
   <!-- ESTADO: CARGANDO -->
-  <div class="state-loading" id="state-loading">
-    <div class="loading-spinner"></div>
+  <div class="state-loading" id="state-loading" role="status">
+    <div class="loading-spinner" aria-hidden="true"></div>
     <p>Cargando datos…</p>
   </div>
 
   <!-- ESTADO: VACÍO -->
-  <div class="state-empty" id="state-empty" style="display:none">
-    <div class="empty-icon">🔍</div>
+  <div class="state-empty" id="state-empty" role="status" hidden>
+    <div class="empty-icon" aria-hidden="true">🔍</div>
     <p>No se encontraron registros para los filtros seleccionados.</p>
   </div>
 
   <!-- KPI CARDS -->
-  <section class="kpi-section" id="kpi-section" style="display:none">
+  <section class="kpi-section" id="kpi-section" aria-label="Indicadores principales" hidden>
     <div class="container">
       <p class="kpi-source-note" id="kpi-source-note"></p>
       <div class="kpi-grid">
 
         <div class="kpi-card">
-          <div class="kpi-icon">📊</div>
+          <div class="kpi-icon" aria-hidden="true">📊</div>
           <div class="kpi-value" id="kpi-val-total">—</div>
           <div class="kpi-label">Registros encontrados</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon">😴</div>
+          <div class="kpi-icon" aria-hidden="true">😴</div>
           <div class="kpi-value" id="kpi-val-sleep">—</div>
           <div class="kpi-label">Sueño promedio por noche</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon">📚</div>
+          <div class="kpi-icon" aria-hidden="true">📚</div>
           <div class="kpi-value" id="kpi-val-academic">—</div>
           <div class="kpi-label">Carga académica promedio</div>
         </div>
 
         <div class="kpi-card">
-          <div class="kpi-icon">🌿</div>
+          <div class="kpi-icon" aria-hidden="true">🌿</div>
           <div class="kpi-value" id="kpi-val-free">—</div>
           <div class="kpi-label">Ociómetro · Tiempo de Bienestar (promedio)</div>
         </div>
@@ -168,7 +234,7 @@
   </section>
 
   <!-- INSIGHTS NARRATIVOS -->
-  <section class="insights-section" id="insights-section" style="display:none">
+  <section class="insights-section" id="insights-section" hidden>
     <div class="container">
       <div class="insights-header">
         <span class="tag">Lo que nos dicen los datos</span>
@@ -180,7 +246,7 @@
   </section>
 
   <!-- GRÁFICAS -->
-  <section class="charts-section" id="charts-section" style="display:none">
+  <section class="charts-section" id="charts-section" hidden>
     <div class="container">
       <div class="charts-grid">
 
@@ -189,7 +255,8 @@
           <h2 class="chart-title">Promedio semanal por categoría</h2>
           <p class="chart-subtitle">Horas promedio por semana · basado en los registros filtrados</p>
           <div class="chart-wrap chart-wrap--bar">
-            <canvas id="barChart"></canvas>
+            <canvas id="barChart" role="img"
+                    aria-label="Gráfico de barras con las horas promedio por semana en cada categoría de bienestar."></canvas>
           </div>
         </div>
 
@@ -198,7 +265,8 @@
           <h2 class="chart-title">Balance del usuario promedio</h2>
           <p class="chart-subtitle">Distribución de las 168 horas semanales por categoría</p>
           <div class="chart-wrap chart-wrap--doughnut">
-            <canvas id="doughnutChart"></canvas>
+            <canvas id="doughnutChart" role="img"
+                    aria-label="Gráfico de dona con la distribución de las 168 horas semanales. El detalle en cifras está en la lista contigua."></canvas>
           </div>
           <div class="doughnut-legend" id="doughnut-legend"></div>
         </div>
@@ -213,41 +281,71 @@
       <div class="credits-header">
         <span class="tag">RAPsi · UNAL</span>
         <h2 class="section-title" style="margin-top:.75rem">Créditos del Proyecto</h2>
-        <p class="section-sub">Equipo que diseñó y desarrolló este dashboard de bienestar.</p>
+        <p class="section-sub">Equipo que diseñó y desarrolló el Ociómetro y este informe de bienestar.</p>
       </div>
       <div class="credits-grid">
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Oscar.png" alt="Foto de Oscar Saavedra" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Oscar.webp" type="image/webp" />
+              <img src="/Imagenes/Oscar.png" alt="Retrato de Oscar Saavedra" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Oscar Saavedra</span>
           <span class="credit-role">Ingeniería de Sistemas</span>
           <a class="credit-email" href="mailto:osaavedra@unal.edu.co">osaavedra@unal.edu.co</a>
         </div>
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Aleja.png" alt="Foto de Maria Rosero" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Aleja.webp" type="image/webp" />
+              <img src="/Imagenes/Aleja.png" alt="Retrato de Maria Rosero" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Maria Rosero</span>
           <span class="credit-role">Derecho y Psicología</span>
           <a class="credit-email" href="mailto:mroseroca@unal.edu.co">mroseroca@unal.edu.co</a>
         </div>
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Wendy.png" alt="Foto de Wendy Tocanchón" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Wendy.webp" type="image/webp" />
+              <img src="/Imagenes/Wendy.png" alt="Retrato de Wendy Tocanchón" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Wendy Tocanchón</span>
           <span class="credit-role">Terapia Ocupacional</span>
           <a class="credit-email" href="mailto:wtocanchon@unal.edu.co">wtocanchon@unal.edu.co</a>
         </div>
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Gisel.png" alt="Foto de Gisell Triviño" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Gisel.webp" type="image/webp" />
+              <img src="/Imagenes/Gisel.png" alt="Retrato de Gisell Triviño" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Gisell Triviño</span>
           <span class="credit-role">Psicología</span>
           <a class="credit-email" href="mailto:gtrivinor@unal.edu.co">gtrivinor@unal.edu.co</a>
         </div>
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Carolina.png" alt="Foto de Carolina Morales" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Carolina.webp" type="image/webp" />
+              <img src="/Imagenes/Carolina.png" alt="Retrato de Carolina Morales" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Carolina Morales</span>
           <span class="credit-role">Psicología</span>
           <a class="credit-email" href="mailto:lamoralesb@unal.edu.co">lamoralesb@unal.edu.co</a>
         </div>
         <div class="credit-card">
-          <div class="credit-photo"><img src="../Imagenes/Diego.png" alt="Foto de Diego Ramirez" loading="lazy" /></div>
+          <div class="credit-photo">
+            <picture>
+              <source srcset="/Imagenes/Diego.webp" type="image/webp" />
+              <img src="/Imagenes/Diego.png" alt="Retrato de Diego Ramirez" width="92" height="92" loading="lazy" decoding="async" />
+            </picture>
+          </div>
           <span class="credit-name">Diego Ramirez</span>
           <span class="credit-role">Economía</span>
           <a class="credit-email" href="mailto:diramirezme@unal.edu.co">diramirezme@unal.edu.co</a>
@@ -267,14 +365,16 @@
     </div>
   </section>
 
+  </main>
+
   <!-- FOOTER INSTITUCIONAL -->
   <footer>
     <div class="container">
       <div class="footer-inner">
         <div class="footer-brand">
-          <div class="footer-logo">⏱</div>
+          <div class="footer-logo" aria-hidden="true">⏱</div>
           <div class="footer-brand-text">
-            <strong>RAPsi</strong>
+            <strong>Ociómetro · RAPsi</strong>
             <span>RED de Acompañamiento Integral UNAL</span>
           </div>
         </div>
@@ -286,7 +386,7 @@
         </div>
         <div class="footer-social">
           <a href="https://www.instagram.com/rapsi.unal/" target="_blank" rel="noopener noreferrer" class="footer-ig">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"
                  fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
               <circle cx="12" cy="12" r="4"/>
@@ -297,13 +397,10 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>Herramienta de autocuidado y bienestar estudiantil &middot; <span class="footer-tool">Dashboard de Análisis</span></p>
+        <p>Herramienta de autocuidado y bienestar estudiantil &middot; <span class="footer-tool">Informe de Bienestar 2026-1</span></p>
       </div>
     </div>
   </footer>
-
-  <!-- Lógica del dashboard (incluye el control del Timeline Slider) -->
-  <script src="stats.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,12 @@
+# Ociómetro · RAPsi UNAL — https://ociometro.vercel.app
+# Sitio público de bienestar universitario: todo el contenido es indexable.
+#
+# El JSON del informe se deja accesible a propósito: Googlebot necesita
+# descargarlo para renderizar las gráficas de /stats. Que no aparezca como
+# resultado de búsqueda se resuelve con la cabecera X-Robots-Tag: noindex
+# (ver vercel.json), no bloqueándolo aquí.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://ociometro.vercel.app/sitemap.xml

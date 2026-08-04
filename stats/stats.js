@@ -9,6 +9,11 @@
 let barChartInst      = null;
 let doughnutChartInst = null;
 
+/* Respeta la preferencia del sistema "reducir movimiento":
+   las gráficas se pintan en su estado final, sin animar. */
+const REDUCE_MOTION =
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
 /* ----------------------------------------------------------
    CATEGORÍAS VISUALES — usan prefijo avg_* para que categoryValue
    lea directamente los aliases del objeto avgs.
@@ -105,26 +110,36 @@ function destroyCharts() {
   if (doughnutChartInst) { doughnutChartInst.destroy(); doughnutChartInst = null; }
 }
 
+/* Se usa el atributo [hidden] en vez de style.display: así el
+   contenido oculto también sale del árbol de accesibilidad y la
+   presentación sigue viviendo en el CSS. */
+function setHidden(id, hidden) {
+  const el = document.getElementById(id);
+  if (el) el.hidden = hidden;
+}
+
 function showLoading() {
   destroyCharts();
-  document.getElementById('state-loading').style.display = 'flex';
-  document.getElementById('state-empty').style.display   = 'none';
-  CONTENT_IDS.forEach(id => { document.getElementById(id).style.display = 'none'; });
+  setHidden('state-loading', false);
+  setHidden('state-empty',   true);
+  CONTENT_IDS.forEach(id => setHidden(id, true));
 }
 
 function showEmpty(msg) {
   destroyCharts();
-  document.getElementById('state-loading').style.display = 'none';
+  setHidden('state-loading', true);
   const emptyEl = document.getElementById('state-empty');
-  emptyEl.style.display = 'flex';
-  if (msg) emptyEl.querySelector('p').textContent = msg;
-  CONTENT_IDS.forEach(id => { document.getElementById(id).style.display = 'none'; });
+  if (emptyEl) {
+    emptyEl.hidden = false;
+    if (msg) emptyEl.querySelector('p').textContent = msg;
+  }
+  CONTENT_IDS.forEach(id => setHidden(id, true));
 }
 
 function showContent() {
-  document.getElementById('state-loading').style.display = 'none';
-  document.getElementById('state-empty').style.display   = 'none';
-  CONTENT_IDS.forEach(id => { document.getElementById(id).style.display = ''; });
+  setHidden('state-loading', true);
+  setHidden('state-empty',   true);
+  CONTENT_IDS.forEach(id => setHidden(id, false));
 }
 
 /* ----------------------------------------------------------
@@ -301,6 +316,7 @@ function renderBarChart(avgs) {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      animation: REDUCE_MOTION ? false : undefined,
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -379,7 +395,7 @@ function renderDoughnutChart(avgs) {
           cornerRadius:    8,
         },
       },
-      animation: {
+      animation: REDUCE_MOTION ? false : {
         animateRotate: true,
         duration:      700,
         easing:        'easeInOutQuart',
@@ -407,7 +423,7 @@ function renderDoughnutLegend(data, total) {
 /* ----------------------------------------------------------
    ARCHIVO LOCAL CON LOS REGISTROS DE registros_bienestar
 ---------------------------------------------------------- */
-const DATA_FILE = 'registros_bienestar_rows.json';
+const DATA_FILE = '/stats/registros_bienestar_rows.json';
 
 /* ----------------------------------------------------------
    "COMUNIDAD + TÚ" — snapshot local del usuario
@@ -419,6 +435,53 @@ const DATA_FILE = 'registros_bienestar_rows.json';
 ---------------------------------------------------------- */
 const LOCAL_SNAPSHOT_KEY = 'rapsi_user_snapshots';
 
+/* Campos numéricos que el dashboard promedia. Cualquier otra
+   propiedad del objeto almacenado se descarta: el snapshot se
+   reconstruye desde cero en vez de mezclarse tal cual. */
+const SNAPSHOT_NUMERIC_FIELDS = [
+  'sleep_hours', 'transport_hours', 'food_hours', 'grooming_hours',
+  'house_tasks_hours', 'academic_load_hours', 'obligations_hours',
+  'work_hours', 'scrolling_hours', 'physical_activity_hours',
+  'quality_social_hours', 'other_hobbies_hours', 'available_time',
+  'wellbeing_time', 'occupied_time', 'class_hours', 'self_study_hours',
+];
+
+const MAX_LOCAL_SNAPSHOTS = 10;   // techo de aportes propios a los promedios
+
+/* ----------------------------------------------------------
+   SANEAMIENTO DE UN SNAPSHOT LOCAL
+
+   localStorage lo puede editar cualquiera desde la consola del
+   navegador, así que un snapshot NO es un dato de confianza: se
+   reconstruye campo por campo, cada valor se fuerza a número
+   finito y se recorta al rango [0, 168] (ninguna categoría puede
+   ocupar más horas de las que tiene una semana). Sin esto, un
+   valor tipo 1e309 o un texto arbitrario contaminaría los
+   promedios y las gráficas del informe.
+---------------------------------------------------------- */
+function sanitizeSnapshot(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+
+  const ts = new Date(raw.created_at).getTime();
+  if (!Number.isFinite(ts)) return null;
+
+  const sleep = parseFloat(raw.sleep_hours);
+  if (!Number.isFinite(sleep)) return null;   // sin métrica base no aporta nada
+
+  const clean = {
+    created_at:        new Date(ts).toISOString(),
+    is_student:        raw.is_student === true,
+    __isLocalSnapshot: true,
+    __ts:              ts,
+  };
+
+  for (const field of SNAPSHOT_NUMERIC_FIELDS) {
+    const v = parseFloat(raw[field]);
+    clean[field] = Number.isFinite(v) ? Math.min(168, Math.max(0, v)) : 0;
+  }
+  return clean;
+}
+
 function loadLocalSnapshots() {
   try {
     const raw = localStorage.getItem(LOCAL_SNAPSHOT_KEY);
@@ -428,25 +491,22 @@ function loadLocalSnapshots() {
     // Migra un snapshot antiguo (objeto único, formato pre-acumulativo) a array.
     const candidates = Array.isArray(parsed) ? parsed : [parsed];
 
-    // Validación mínima por registro: debe tener una fecha parseable
-    // y al menos una métrica numérica real (sleep_hours); si no, se
-    // ignora silenciosamente en vez de romper el dashboard.
-    const snapshots = candidates.filter(snap => {
-      if (!snap || typeof snap !== 'object') return false;
-      const ts = new Date(snap.created_at).getTime();
-      return !Number.isNaN(ts) && !Number.isNaN(parseFloat(snap.sleep_hours));
-    });
-
-    if (snapshots.length !== candidates.length) {
+    const clean = candidates.map(sanitizeSnapshot).filter(Boolean);
+    if (clean.length !== candidates.length) {
       console.warn('[Stats] Algún snapshot local con formato inesperado fue ignorado.');
     }
 
-    // Marca interna (no viaja al JSON ni se vuelve a guardar):
-    // permite saber qué registros quedaron dentro del filtro activo.
-    snapshots.forEach(snap => { snap.__isLocalSnapshot = true; });
-    return snapshots;
+    // Un solo aporte por día: recalcular veinte veces la misma
+    // tarde no debe pesar veinte veces sobre el promedio de la
+    // comunidad. Se conserva el cálculo más reciente de cada día.
+    const porDia = new Map();
+    for (const snap of clean.sort((a, b) => a.__ts - b.__ts)) {
+      porDia.set(colombiaDay(snap.__ts), snap);
+    }
+
+    return [...porDia.values()].slice(-MAX_LOCAL_SNAPSHOTS);
   } catch (err) {
-    console.warn('[Stats] No se pudieron leer los snapshots locales:', err.message);
+    console.warn('[Stats] No se pudieron leer los snapshots locales:', err?.message);
     return [];
   }
 }
@@ -458,13 +518,15 @@ function loadLocalSnapshots() {
    (no sólo si existe en localStorage), para que el mensaje sea
    siempre exacto sobre lo que se está promediando.
 ---------------------------------------------------------- */
-function updateSourceNote(includesLocal) {
+function updateSourceNote(localCount) {
   const el = document.getElementById('kpi-source-note');
   if (!el) return;
-  el.textContent = includesLocal
-    ? 'Análisis basado en las estadísticas de la comunidad + tu registro actual'
-    : 'Análisis basado en las estadísticas de la comunidad';
-  el.classList.toggle('kpi-source-note--mine', !!includesLocal);
+  el.textContent = localCount === 0
+    ? 'Análisis basado en las estadísticas de la comunidad'
+    : localCount === 1
+      ? 'Análisis basado en las estadísticas de la comunidad + tu registro'
+      : `Análisis basado en las estadísticas de la comunidad + tus ${localCount} registros`;
+  el.classList.toggle('kpi-source-note--mine', localCount > 0);
 }
 
 /* ----------------------------------------------------------
@@ -474,12 +536,16 @@ function updateSourceNote(includesLocal) {
    datos disponibles. Posiciona (o esconde) el hito de la Feria.
 ---------------------------------------------------------- */
 function setupTimeline() {
-  const times = ALL_RECORDS
-    .map(r => new Date(r.created_at).getTime())
-    .filter(t => !Number.isNaN(t));
+  // reduce() en vez de Math.min(...times): un spread con miles de
+  // elementos puede desbordar la pila de llamadas.
+  let minTs = Infinity, maxTs = -Infinity;
+  for (const r of ALL_RECORDS) {
+    if (r.__ts < minTs) minTs = r.__ts;
+    if (r.__ts > maxTs) maxTs = r.__ts;
+  }
 
-  const minDay = colombiaDay(Math.min(...times));
-  const maxDay = colombiaDay(Math.max(...times));
+  const minDay = colombiaDay(minTs);
+  const maxDay = colombiaDay(maxTs);
 
   TL.baseMs = ymdToMs(minDay, false);
   TL.maxOff = Math.round((ymdToMs(maxDay, false) - TL.baseMs) / MS_DAY);
@@ -504,9 +570,6 @@ function setupTimeline() {
       milestone.style.left = pctOf(TL.milestoneOff) + '%';
     }
   }
-
-  console.log(`[Stats] Timeline: ${minDay} → ${maxDay} (${TL.maxOff} días)` +
-              (TL.milestoneOff !== null ? ` · Feria en offset ${TL.milestoneOff}` : ' · Feria fuera de rango'));
 
   syncTimelineUI();
 }
@@ -547,17 +610,15 @@ function renderFiltered() {
   const fromMs = ymdToMs(offsetToYMD(a), false);
   const toMs   = ymdToMs(offsetToYMD(b), true);
 
-  let filtered = ALL_RECORDS.filter(r => {
-    const ts = new Date(r.created_at).getTime();
-    return ts >= fromMs && ts <= toMs;
-  });
+  // __ts se precalcula una sola vez al cargar (ver initDashboard):
+  // evita reconstruir un Date por registro en cada movimiento del
+  // slider.
+  let filtered = ALL_RECORDS.filter(r => r.__ts >= fromMs && r.__ts <= toMs);
 
   if (userType === 'student')    filtered = filtered.filter(r => r.is_student === true);
   if (userType === 'nonstudent') filtered = filtered.filter(r => r.is_student === false);
 
-  console.log(`[Stats] ${offsetToYMD(a)} → ${offsetToYMD(b)} · ${userType} · ${filtered.length} registros`);
-
-  updateSourceNote(filtered.some(r => r.__isLocalSnapshot));
+  updateSourceNote(filtered.filter(r => r.__isLocalSnapshot).length);
 
   if (!filtered.length) {
     showEmpty('No se encontraron registros para los filtros seleccionados.');
@@ -678,28 +739,45 @@ async function initDashboard() {
     document.getElementById('filters-details')?.removeAttribute('open');
   }
 
+  document.getElementById('btn-apply')?.addEventListener('click', applyFilters);
+
   showLoading();
+
+  let raw;
   try {
     const res = await fetch(DATA_FILE);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    ALL_RECORDS = await res.json();
+    raw = await res.json();
   } catch (error) {
     console.error('[Stats] Error cargando JSON local:', error);
-    showEmpty('Error al cargar los datos locales. Revisa la consola del navegador (F12).');
+    showEmpty('No se pudieron cargar los datos del informe. Vuelve a intentarlo en unos minutos.');
     return;
   }
 
-  if (!Array.isArray(ALL_RECORDS) || !ALL_RECORDS.length) {
+  if (!Array.isArray(raw) || !raw.length) {
     showEmpty('No hay registros disponibles para mostrar.');
     return;
   }
 
-  console.log(`[Stats] Registros cargados: ${ALL_RECORDS.length}`);
+  // Se descartan las filas sin fecha utilizable y se precalcula
+  // __ts: el filtrado por rango se ejecuta en cada movimiento del
+  // slider y no debería construir un Date por registro cada vez.
+  ALL_RECORDS = raw
+    .filter(r => r && typeof r === 'object')
+    .map(r => {
+      const ts = new Date(r.created_at).getTime();
+      return Number.isFinite(ts) ? { ...r, __ts: ts } : null;
+    })
+    .filter(Boolean);
+
+  if (!ALL_RECORDS.length) {
+    showEmpty('No hay registros disponibles para mostrar.');
+    return;
+  }
 
   const localSnapshots = loadLocalSnapshots();
   if (localSnapshots.length) {
     ALL_RECORDS = [...ALL_RECORDS, ...localSnapshots];
-    console.log(`[Stats] ${localSnapshots.length} snapshot(s) local(es) incorporado(s) — Comunidad + Tú.`);
   }
 
   setupTimeline();
@@ -707,4 +785,8 @@ async function initDashboard() {
   renderFiltered();
 }
 
-document.addEventListener('DOMContentLoaded', initDashboard);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDashboard);
+} else {
+  initDashboard();
+}
